@@ -13,6 +13,7 @@ class HttpCheck(BaseCheck):
         url: str = self.params["url"]
         method: str = self.params.get("method", "GET").upper()
         expected_status: int = self.params.get("expected_status", 200)
+        expected_body: str | None = self.params.get("expected_body")
         timeout: int = self.params.get("timeout", 30)
         api_key_env: str | None = self.params.get("api_key_env")
 
@@ -30,6 +31,7 @@ class HttpCheck(BaseCheck):
                 "query": "ping",
                 "response_mode": "blocking",
                 "user": "status-checker",
+                "auto_generate_name": False,
             }
 
         try:
@@ -43,10 +45,15 @@ class HttpCheck(BaseCheck):
                 elapsed_ms = int((time.monotonic() - start) * 1000)
 
             if resp.status_code == expected_status:
+                if expected_body:
+                    body = resp.text
+                    if expected_body in body:
+                        return self._result(Status.UP, elapsed_ms, f"HTTP {resp.status_code}, body contains '{expected_body}'")
+                    return self._result(Status.DOWN, elapsed_ms, f"HTTP {resp.status_code}, body missing '{expected_body}'")
                 return self._result(Status.UP, elapsed_ms, f"HTTP {resp.status_code}")
 
             # API returns 400/401/403 but the server itself is responding
-            if resp.status_code in (400, 401, 403):
+            if resp.status_code in (400, 401, 403) and not expected_body:
                 return self._result(
                     Status.UP, elapsed_ms, f"HTTP {resp.status_code} (auth/input error, server is responding)"
                 )

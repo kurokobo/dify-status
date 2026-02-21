@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import yaml
+from dotenv import load_dotenv
 
 from checks.registry import CHECK_TYPES
 
@@ -21,6 +22,7 @@ def load_config() -> dict:
 
 
 async def run_checks() -> None:
+    load_dotenv(ROOT / ".env")
     config = load_config()
     settings = config["settings"]
     data_dir = ROOT / settings["data_dir"]

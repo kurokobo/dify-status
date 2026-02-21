@@ -60,6 +60,14 @@ function detailApp() {
     loading: false,
     ...tooltipMixin(),
 
+    init() {
+      const days = this.checkSummary.days || [];
+      const latest = [...days].reverse().find(d => d.status !== 'nodata');
+      if (latest) {
+        this.selectDate(latest.date);
+      }
+    },
+
     selectDate(date) {
       if (this.selectedDate === date) return;
       this.selectedDate = date;

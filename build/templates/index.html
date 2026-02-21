@@ -37,6 +37,13 @@
         </div>
       </div>
 
+      <div class="legend">
+        <span class="legend-item"><span class="legend-color cell-up"></span> Up</span>
+        <span class="legend-item"><span class="legend-color cell-degraded"></span> Degraded</span>
+        <span class="legend-item"><span class="legend-color cell-down"></span> Down</span>
+        <span class="legend-item"><span class="legend-color cell-nodata"></span> No Data</span>
+      </div>
+
       <!-- Per-check rows -->
       <template x-for="check in summary.checks" :key="check.id">
         <a :href="'detail/' + check.id + '.html'" class="check-row check-row-link">
@@ -44,6 +51,7 @@
             <span class="check-name" x-text="check.name"></span>
             <span class="check-status-badge" :class="'badge-' + check.current_status" x-text="check.current_status"></span>
           </div>
+          <p x-show="check.note" class="check-note" x-text="check.note"></p>
           <div class="grid-90">
             <template x-for="day in check.days" :key="day.date">
               <div class="grid-cell"

@@ -13,6 +13,7 @@
       <a href="../index.html" class="back-link">&larr; Back to overview</a>
       <h1>{{ check.name }}</h1>
       <p class="check-description">{{ check.description }}</p>
+      {% if check.note %}<p class="check-note">{{ check.note }}</p>{% endif %}
       <div class="overall-status" :class="'status-banner-' + checkSummary.current_status">
         <span x-text="checkSummary.current_status"></span>
       </div>
@@ -35,6 +36,13 @@
             </div>
           </template>
         </div>
+      </div>
+
+      <div class="legend">
+        <span class="legend-item"><span class="legend-color cell-up"></span> Up</span>
+        <span class="legend-item"><span class="legend-color cell-degraded"></span> Degraded</span>
+        <span class="legend-item"><span class="legend-color cell-down"></span> Down</span>
+        <span class="legend-item"><span class="legend-color cell-nodata"></span> No Data</span>
       </div>
 
       <!-- Daily detail -->

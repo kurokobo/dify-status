@@ -56,11 +56,12 @@ h1 {
 }
 
 .overall-status {
-  display: inline-block;
-  padding: 0.4rem 1rem;
+  display: block;
+  padding: 0.6rem 1rem;
   border-radius: 6px;
   font-weight: 600;
   margin-bottom: 0.5rem;
+  text-align: center;
 }
 
 .status-banner-up { background: #dafbe1; color: #116329; }
@@ -103,6 +104,12 @@ h1 {
 .check-name {
   font-weight: 600;
   font-size: 0.95rem;
+}
+
+.check-note {
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  margin-bottom: 0.4rem;
 }
 
 .check-status-badge {
@@ -212,6 +219,30 @@ h1 {
 .no-data {
   color: var(--color-text-secondary);
   padding: 1rem 0;
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.legend-color {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
 }
 
 /* Footer */

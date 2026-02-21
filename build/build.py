@@ -65,6 +65,7 @@ def build_summary(
     check_ids = [c["id"] for c in checks_config]
     check_names = {c["id"]: c["name"] for c in checks_config}
     check_descriptions = {c["id"]: c.get("description", "") for c in checks_config}
+    check_notes = {c["id"]: c.get("note", "") for c in checks_config}
 
     checks_summary: list[dict] = []
     overall_days: dict[str, list[str]] = defaultdict(list)
@@ -97,6 +98,7 @@ def build_summary(
             "id": cid,
             "name": check_names[cid],
             "description": check_descriptions[cid],
+            "note": check_notes[cid],
             "days": days,
             "current_status": days[-1]["status"] if days else "nodata",
         })

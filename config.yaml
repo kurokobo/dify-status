@@ -1,14 +1,14 @@
 settings:
   data_dir: data
   retention_days: 90
-  site_title: "Dify Status (Unofficial)"
+  site_title: "Dify Cloud Status (Unofficial)"
   site_url: "https://kurokobo.github.io/dify-status"
 
 checks:
-  - id: cloud_web
-    name: "Cloud Portal"
+  - id: web_ui
+    name: "Web UI"
     type: http
-    description: "Check if cloud.dify.ai is accessible"
+    description: "Check if cloud.dify.ai returns HTTP 200 (does not verify page rendering)"
     params:
       url: "https://cloud.dify.ai"
       method: GET
@@ -18,9 +18,22 @@ checks:
   - id: api
     name: "API"
     type: http
-    description: "Check if the Dify API endpoint is responding"
+    description: "Run a minimal chat flow (Start + Answer nodes only) and verify that the hardcoded response 'pong' is returned"
     params:
       url: "https://api.dify.ai/v1/chat-messages"
       method: POST
       api_key_env: "DIFY_API_KEY"
+      expected_body: "pong"
+      timeout: 60
+
+  - id: sandbox
+    name: "Sandbox"
+    type: http
+    description: "Run a chat flow (Start + Template + Answer nodes) where the Template node generates 'pong from sandbox', and verify it is included in the response"
+    note: "Depends on API; if the API is down, this check will also fail"
+    params:
+      url: "https://api.dify.ai/v1/chat-messages"
+      method: POST
+      api_key_env: "DIFY_SANDBOX_API_KEY"
+      expected_body: "pong from sandbox"
       timeout: 60
