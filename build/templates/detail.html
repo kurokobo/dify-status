@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ check.name }} - {{ site_title }}</title>
+  <link rel="stylesheet" href="../static/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+  <div class="container" x-data="detailApp()">
+    <header>
+      <a href="../index.html" class="back-link">&larr; Back to overview</a>
+      <h1>{{ check.name }}</h1>
+      <p class="check-description">{{ check.description }}</p>
+      <div class="overall-status" :class="'status-banner-' + checkSummary.current_status">
+        <span x-text="checkSummary.current_status"></span>
+      </div>
+    </header>
+
+    <main>
+      <!-- 90-day grid -->
+      <div class="check-row">
+        <div class="check-header">
+          <span class="check-name">{{ check.name }}</span>
+        </div>
+        <div class="grid-90">
+          <template x-for="day in checkSummary.days" :key="day.date">
+            <div class="grid-cell"
+                 :class="'cell-' + day.status + (selectedDate === day.date ? ' cell-selected' : '')"
+                 :title="day.date"
+                 @click="selectDate(day.date)"
+                 @mouseenter="showCheckTooltip($event, day, '{{ check.name }}')"
+                 @mouseleave="hideTooltip()">
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- Daily detail -->
+      <section class="daily-detail">
+        <h2 x-text="selectedDate ? 'Results for ' + selectedDate : 'Click a day to view details'"></h2>
+        <div x-show="loading" class="loading">Loading...</div>
+        <div x-show="!loading && dayRecords.length > 0">
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th>Time (UTC)</th>
+                <th>Status</th>
+                <th>Response Time</th>
+                <th>Message</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="r in dayRecords" :key="r.timestamp">
+                <tr>
+                  <td x-text="r.timestamp.substring(11, 19)"></td>
+                  <td><span class="check-status-badge" :class="'badge-' + r.status" x-text="r.status"></span></td>
+                  <td x-text="r.response_time_ms >= 0 ? r.response_time_ms + ' ms' : '-'"></td>
+                  <td x-text="r.message"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+        <div x-show="!loading && selectedDate && dayRecords.length === 0" class="no-data">
+          No data for this date.
+        </div>
+      </section>
+    </main>
+
+    <!-- Tooltip -->
+    <div class="tooltip" x-show="tooltip.visible" x-transition
+         :style="'left:' + tooltip.x + 'px; top:' + tooltip.y + 'px'">
+      <div class="tooltip-date" x-text="tooltip.date"></div>
+      <div x-show="tooltip.name" class="tooltip-name" x-text="tooltip.name"></div>
+      <div class="tooltip-status" :class="'text-' + tooltip.status" x-text="tooltip.status"></div>
+      <div x-show="tooltip.uptime !== null" class="tooltip-detail">
+        Uptime: <span x-text="tooltip.uptime"></span>%
+      </div>
+      <div x-show="tooltip.avgResp >= 0" class="tooltip-detail">
+        Avg response: <span x-text="tooltip.avgResp"></span> ms
+      </div>
+    </div>
+
+    <footer>
+      <p>This is an unofficial status page. Not affiliated with Dify.</p>
+      <p>Built by <a href="https://github.com/kurokobo">@kurokobo</a> · <a href="https://github.com/kurokobo/dify-status">Source on GitHub</a></p>
+    </footer>
+  </div>
+
+  <script>
+    const SUMMARY_DATA = {{ summary_json | safe }};
+    const CHECK_ID = "{{ check.id }}";
+  </script>
+  <script src="../static/app.js"></script>
+</body>
+</html>

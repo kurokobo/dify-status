@@ -1,0 +1,225 @@
+:root {
+  --color-up: #2da44e;
+  --color-degraded: #d4a017;
+  --color-down: #cf222e;
+  --color-nodata: #d0d7de;
+  --color-bg: #ffffff;
+  --color-text: #1f2328;
+  --color-text-secondary: #656d76;
+  --color-border: #d0d7de;
+  --color-surface: #f6f8fa;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* Header */
+header {
+  margin-bottom: 2rem;
+}
+
+h1 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+
+.back-link:hover {
+  color: var(--color-text);
+}
+
+.check-description {
+  color: var(--color-text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.overall-status {
+  display: inline-block;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.status-banner-up { background: #dafbe1; color: #116329; }
+.status-banner-degraded { background: #fff8c5; color: #6a5300; }
+.status-banner-down { background: #ffebe9; color: #82071e; }
+.status-banner-nodata { background: var(--color-surface); color: var(--color-text-secondary); }
+
+.last-checked {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+/* Check rows */
+.check-row {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  background: var(--color-bg);
+}
+
+.check-row-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow 0.15s;
+}
+
+.check-row-link:hover {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.check-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.check-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.check-status-badge {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.badge-up { background: #dafbe1; color: #116329; }
+.badge-degraded { background: #fff8c5; color: #6a5300; }
+.badge-down { background: #ffebe9; color: #82071e; }
+.badge-nodata { background: var(--color-surface); color: var(--color-text-secondary); }
+
+/* 90-day grid */
+.grid-90 {
+  display: flex;
+  gap: 2px;
+  align-items: flex-end;
+}
+
+.grid-cell {
+  flex: 1;
+  height: 32px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: opacity 0.1s;
+  min-width: 0;
+}
+
+.grid-cell:hover {
+  opacity: 0.7;
+}
+
+.cell-up { background: var(--color-up); }
+.cell-degraded { background: var(--color-degraded); }
+.cell-down { background: var(--color-down); }
+.cell-nodata { background: var(--color-nodata); }
+.cell-selected { outline: 2px solid var(--color-text); outline-offset: 1px; }
+
+/* Tooltip */
+.tooltip {
+  position: fixed;
+  background: var(--color-text);
+  color: var(--color-bg);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  pointer-events: none;
+  z-index: 100;
+  white-space: nowrap;
+}
+
+.tooltip-date {
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+
+.tooltip-name {
+  color: #adb5bd;
+  margin-bottom: 0.15rem;
+}
+
+.tooltip-detail {
+  color: #adb5bd;
+}
+
+.text-up { color: #4ade80; }
+.text-degraded { color: #fbbf24; }
+.text-down { color: #f87171; }
+.text-nodata { color: #9ca3af; }
+
+/* Detail page */
+.daily-detail {
+  margin-top: 1.5rem;
+}
+
+.daily-detail h2 {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.results-table th,
+.results-table td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.results-table th {
+  background: var(--color-surface);
+  font-weight: 600;
+}
+
+.loading {
+  color: var(--color-text-secondary);
+  padding: 1rem 0;
+}
+
+.no-data {
+  color: var(--color-text-secondary);
+  padding: 1rem 0;
+}
+
+/* Footer */
+footer {
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  text-align: center;
+}

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ site_title }}</title>
+  <link rel="stylesheet" href="static/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+  <div class="container" x-data="statusApp()">
+    <header>
+      <h1>{{ site_title }}</h1>
+      <div class="overall-status" :class="'status-banner-' + summary.current_overall_status">
+        <span x-text="summary.current_overall"></span>
+      </div>
+      <p class="last-checked" x-show="summary.last_checked">
+        Last checked: <span x-text="formatTimestamp(summary.last_checked)"></span>
+      </p>
+    </header>
+
+    <main>
+      <!-- Overall -->
+      <div class="check-row">
+        <div class="check-header">
+          <span class="check-name">Overall</span>
+        </div>
+        <div class="grid-90">
+          <template x-for="day in summary.overall_days" :key="day.date">
+            <div class="grid-cell"
+                 :class="'cell-' + day.status"
+                 :title="day.date + ': ' + day.status"
+                 @mouseenter="showTooltip($event, day)"
+                 @mouseleave="hideTooltip()">
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- Per-check rows -->
+      <template x-for="check in summary.checks" :key="check.id">
+        <a :href="'detail/' + check.id + '.html'" class="check-row check-row-link">
+          <div class="check-header">
+            <span class="check-name" x-text="check.name"></span>
+            <span class="check-status-badge" :class="'badge-' + check.current_status" x-text="check.current_status"></span>
+          </div>
+          <div class="grid-90">
+            <template x-for="day in check.days" :key="day.date">
+              <div class="grid-cell"
+                   :class="'cell-' + day.status"
+                   :title="day.date"
+                   @mouseenter.stop="showCheckTooltip($event, day, check.name)"
+                   @mouseleave.stop="hideTooltip()">
+              </div>
+            </template>
+          </div>
+        </a>
+      </template>
+    </main>
+
+    <!-- Tooltip -->
+    <div class="tooltip" x-show="tooltip.visible" x-transition
+         :style="'left:' + tooltip.x + 'px; top:' + tooltip.y + 'px'">
+      <div class="tooltip-date" x-text="tooltip.date"></div>
+      <div x-show="tooltip.name" class="tooltip-name" x-text="tooltip.name"></div>
+      <div class="tooltip-status" :class="'text-' + tooltip.status" x-text="tooltip.status"></div>
+      <div x-show="tooltip.uptime !== null" class="tooltip-detail">
+        Uptime: <span x-text="tooltip.uptime"></span>%
+      </div>
+      <div x-show="tooltip.avgResp >= 0" class="tooltip-detail">
+        Avg response: <span x-text="tooltip.avgResp"></span> ms
+      </div>
+    </div>
+
+    <footer>
+      <p>This is an unofficial status page. Not affiliated with Dify.</p>
+      <p>Built by <a href="https://github.com/kurokobo">@kurokobo</a> · <a href="https://github.com/kurokobo/dify-status">Source on GitHub</a></p>
+    </footer>
+  </div>
+
+  <script>
+    const SUMMARY_DATA = {{ summary_json | safe }};
+  </script>
+  <script src="static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+settings:
+  data_dir: data
+  retention_days: 90
+  site_title: "Dify Status (Unofficial)"
+  site_url: "https://kurokobo.github.io/dify-status"
+
+checks:
+  - id: cloud_web
+    name: "Cloud Portal"
+    type: http
+    description: "Check if cloud.dify.ai is accessible"
+    params:
+      url: "https://cloud.dify.ai"
+      method: GET
+      expected_status: 200
+      timeout: 30
+
+  - id: api
+    name: "API"
+    type: http
+    description: "Check if the Dify API endpoint is responding"
+    params:
+      url: "https://api.dify.ai/v1/chat-messages"
+      method: POST
+      api_key_env: "DIFY_API_KEY"
+      timeout: 60
