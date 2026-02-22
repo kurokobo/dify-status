@@ -23,6 +23,8 @@ jobs:
       - name: Run checks
         env:
           DIFY_API_KEY: ${{ secrets.DIFY_API_KEY }}
+          DIFY_SANDBOX_API_KEY: ${{ secrets.DIFY_SANDBOX_API_KEY }}
+          DIFY_PLUGIN_API_KEY: ${{ secrets.DIFY_PLUGIN_API_KEY }}
         run: uv run python -m checks.runner
 
       - name: Cleanup old data

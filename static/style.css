@@ -183,6 +183,43 @@ h1 {
 .text-down { color: #f87171; }
 .text-nodata { color: #9ca3af; }
 
+/* Hourly grid (24 cells) */
+.grid-24 {
+  display: flex;
+  gap: 2px;
+  align-items: flex-end;
+}
+
+.grid-24 .grid-cell {
+  flex: 1;
+  height: 24px;
+}
+
+.hour-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+  margin-top: 0.25rem;
+  padding: 0 2px;
+}
+
+/* Chart */
+.chart-container {
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+  height: 200px;
+  position: relative;
+}
+
+.section-subheading {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  margin-top: 1rem;
+  color: var(--color-text-secondary);
+}
+
 /* Detail page */
 .daily-detail {
   margin-top: 1.5rem;

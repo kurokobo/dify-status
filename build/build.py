@@ -117,7 +117,7 @@ def build_summary(
     # Current overall status
     current_statuses = [c["current_status"] for c in checks_summary]
     if all(s == "up" for s in current_statuses):
-        current_overall = "All Systems Operational"
+        current_overall = "All Components Operational"
         current_overall_status = "up"
     elif any(s == "down" for s in current_statuses):
         current_overall = "Partial Outage"

@@ -51,6 +51,7 @@
             <span class="check-name" x-text="check.name"></span>
             <span class="check-status-badge" :class="'badge-' + check.current_status" x-text="check.current_status"></span>
           </div>
+          <p class="check-description" x-text="check.description"></p>
           <p x-show="check.note" class="check-note" x-text="check.note"></p>
           <div class="grid-90">
             <template x-for="day in check.days" :key="day.date">

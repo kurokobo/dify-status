@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ check.name }} - {{ site_title }}</title>
   <link rel="stylesheet" href="../static/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body>
@@ -49,6 +50,31 @@
       <section class="daily-detail">
         <h2 x-text="selectedDate ? 'Results for ' + selectedDate : 'Click a day to view details'"></h2>
         <div x-show="loading" class="loading">Loading...</div>
+
+        <!-- Hourly status grid -->
+        <div x-show="!loading && dayRecords.length > 0">
+          <h3 class="section-subheading">Hourly Status</h3>
+          <div class="grid-24">
+            <template x-for="h in hourlyStatus" :key="h.hour">
+              <div class="grid-cell"
+                   :class="'cell-' + h.status"
+                   :title="h.hour + ':00 — ' + h.status + ' (' + h.count + ' checks)'"
+                   @mouseenter="showHourTooltip($event, h)"
+                   @mouseleave="hideTooltip()">
+              </div>
+            </template>
+          </div>
+          <div class="hour-labels">
+            <span>0</span><span>6</span><span>12</span><span>18</span><span>23</span>
+          </div>
+        </div>
+
+        <!-- Response time chart -->
+        <div x-show="!loading && dayRecords.length > 0" class="chart-container">
+          <h3 class="section-subheading">Response Time</h3>
+          <canvas x-ref="responseChart"></canvas>
+        </div>
+
         <div x-show="!loading && dayRecords.length > 0">
           <table class="results-table">
             <thead>

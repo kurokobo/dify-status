@@ -37,3 +37,15 @@ checks:
       api_key_env: "DIFY_SANDBOX_API_KEY"
       expected_body: "pong from sandbox"
       timeout: 60
+
+  - id: plugin
+    name: "Plugin"
+    type: http
+    description: "Run a chat flow (Start + LLM with Fake Models + Answer nodes) where the LLM node generates 'pong from plugin', and verify it is included in the response"
+    note: "Depends on API; if the API is down, this check will also fail"
+    params:
+      url: "https://api.dify.ai/v1/chat-messages"
+      method: POST
+      api_key_env: "DIFY_PLUGIN_API_KEY"
+      expected_body: "pong from plugin"
+      timeout: 60
