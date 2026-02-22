@@ -71,7 +71,7 @@
 
         <!-- Response time chart -->
         <div x-show="!loading && dayRecords.length > 0" class="chart-container">
-          <h3 class="section-subheading">Response Time</h3>
+          <h3 class="section-subheading">{% if check.type == 'knowledge' %}Indexing Time{% else %}Response Time{% endif %}</h3>
           <canvas x-ref="responseChart"></canvas>
         </div>
 
@@ -81,7 +81,7 @@
               <tr>
                 <th>Time (UTC)</th>
                 <th>Status</th>
-                <th>Response Time</th>
+                <th>{% if check.type == 'knowledge' %}Indexing Time{% else %}Response Time{% endif %}</th>
                 <th>Message</th>
               </tr>
             </thead>
@@ -90,7 +90,7 @@
                 <tr>
                   <td x-text="r.timestamp.substring(11, 19)"></td>
                   <td><span class="check-status-badge" :class="'badge-' + r.status" x-text="r.status"></span></td>
-                  <td x-text="r.response_time_ms >= 0 ? r.response_time_ms + ' ms' : '-'"></td>
+                  <td x-text="r.response_time_ms >= 0 ? formatTime(r.response_time_ms) : '-'"></td>
                   <td x-text="r.message"></td>
                 </tr>
               </template>
@@ -126,6 +126,7 @@
   <script>
     const SUMMARY_DATA = {{ summary_json | safe }};
     const CHECK_ID = "{{ check.id }}";
+    const CHECK_TYPE = "{{ check.type }}";
   </script>
   <script src="../static/app.js"></script>
 </body>

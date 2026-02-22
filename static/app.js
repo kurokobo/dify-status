@@ -62,6 +62,17 @@ function detailApp() {
     _chart: null,
     ...tooltipMixin(),
 
+    _isKnowledge() {
+      return typeof CHECK_TYPE !== 'undefined' && CHECK_TYPE === 'knowledge';
+    },
+
+    formatTime(ms) {
+      if (this._isKnowledge()) {
+        return (ms / 1000).toFixed(1) + ' s';
+      }
+      return ms + ' ms';
+    },
+
     init() {
       const days = this.checkSummary.days || [];
       const latest = [...days].reverse().find(d => d.status !== 'nodata');
@@ -130,7 +141,10 @@ function detailApp() {
 
       const filtered = records.filter(r => r.response_time_ms >= 0);
       const labels = filtered.map(r => r.timestamp.substring(11, 16));
-      const data = filtered.map(r => r.response_time_ms);
+      const isKnowledge = this._isKnowledge();
+      const data = filtered.map(r => isKnowledge ? r.response_time_ms / 1000 : r.response_time_ms);
+      const unit = isKnowledge ? 's' : 'ms';
+      const chartLabel = isKnowledge ? 'Indexing Time (s)' : 'Response Time (ms)';
 
       if (this._chart) {
         this._chart.destroy();
@@ -141,7 +155,7 @@ function detailApp() {
         data: {
           labels: labels,
           datasets: [{
-            label: 'Response Time (ms)',
+            label: chartLabel,
             data: data,
             borderColor: '#2da44e',
             backgroundColor: 'rgba(45, 164, 78, 0.1)',
@@ -163,7 +177,7 @@ function detailApp() {
               ticks: { maxTicksLimit: 12 },
             },
             y: {
-              title: { display: true, text: 'ms' },
+              title: { display: true, text: unit },
               beginAtZero: true,
             },
           },

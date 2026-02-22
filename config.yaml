@@ -49,3 +49,26 @@ checks:
       api_key_env: "DIFY_PLUGIN_API_KEY"
       expected_body: "pong from plugin"
       timeout: 60
+
+  - id: knowledge
+    name: "Knowledge Indexing (Free Plan)"
+    type: knowledge
+    description: "Upload a small text document with Economy indexing on the Free (Sandbox) plan and verify the indexing queue processes it successfully"
+    note: "Depends on API; if the API is down, this check will also fail. Checked every 30 minutes (instead of 15) to stay within API rate limits. Indexing time reflects the actual indexing duration, not the API call latency"
+    params:
+      base_url: "https://api.dify.ai/v1"
+      dataset_id_env: "DIFY_KNOWLEDGE_DATASET_ID"
+      api_key_env: "DIFY_KNOWLEDGE_API_KEY"
+      timeout: 30
+      interval_minutes: 30
+
+  - id: knowledge_pro
+    name: "Knowledge Indexing (Pro Plan)"
+    type: knowledge
+    description: "Upload a small text document with Economy indexing on the Pro plan and verify the indexing queue processes it successfully"
+    note: "Depends on API; if the API is down, this check will also fail. Indexing time reflects the actual indexing duration, not the API call latency"
+    params:
+      base_url: "https://api.dify.ai/v1"
+      dataset_id_env: "DIFY_KNOWLEDGE_PRO_DATASET_ID"
+      api_key_env: "DIFY_KNOWLEDGE_PRO_API_KEY"
+      timeout: 30

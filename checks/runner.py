@@ -41,8 +41,15 @@ async def run_checks() -> None:
 
         check = cls(check_def)
         result = await check.run()
-        results.append(result)
-        print(f"  {result.check_id}: {result.status.value} ({result.message})")
+        if isinstance(result, list):
+            results.extend(result)
+            for r in result:
+                print(f"  {r.check_id}: {r.status.value} ({r.message})")
+            if not result:
+                print(f"  {check.check_id}: (no result this cycle)")
+        else:
+            results.append(result)
+            print(f"  {result.check_id}: {result.status.value} ({result.message})")
 
     with open(day_file, "a", encoding="utf-8") as f:
         for r in results:
