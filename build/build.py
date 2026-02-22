@@ -173,11 +173,14 @@ def build_site() -> None:
     # Jinja2 environment
     env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)), autoescape=True)
 
+    site_description = settings.get("site_description", [])
+
     # Render index.html
     tmpl_index = env.get_template("index.html")
     index_html = tmpl_index.render(
         site_title=site_title,
         site_url=site_url,
+        site_description=site_description,
         summary=summary,
         summary_json=json.dumps(summary, ensure_ascii=False),
     )

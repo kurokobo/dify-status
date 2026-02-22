@@ -3,6 +3,16 @@ settings:
   retention_days: 90
   site_title: "Dify Cloud Status (Unofficial)"
   site_url: "https://kurokobo.github.io/dify-status"
+  notification:
+    github_repo: "kurokobo/dify-status"
+    issue_number: 1
+  site_description:
+    - "This project periodically monitors the operational status of cloud.dify.ai by interacting with pre-built apps and knowledge bases via the API, simulating real user operations. Results are accumulated and displayed here."
+    - "This is an unofficial project and is not affiliated with or supported by LangGenius."
+    - "No guarantees are made regarding the accuracy of the results, and no responsibility is assumed."
+    - "This project runs on GitHub Actions and GitHub Pages. Data gaps may occur due to GitHub-side outages."
+    - "Since all component checks use the API, any API outage will cause all API-dependent checks to fail."
+    - "Pro plan checks may stop working after around July 2026 due to the subscription period ending."
 
 checks:
   - id: web_ui
@@ -66,7 +76,7 @@ checks:
     name: "Knowledge Indexing (Pro Plan)"
     type: knowledge
     description: "Upload a small text document with Economy indexing on the Pro plan and verify the indexing queue processes it successfully"
-    note: "Depends on API; if the API is down, this check will also fail. Indexing time reflects the actual indexing duration, not the API call latency"
+    note: "Depends on API; if the API is down, this check will also fail. Indexing time reflects the actual indexing duration, not the API call latency. This check may stop working after around July 2026 due to the Pro plan subscription period ending"
     params:
       base_url: "https://api.dify.ai/v1"
       dataset_id_env: "DIFY_KNOWLEDGE_PRO_DATASET_ID"

@@ -47,7 +47,12 @@ function tooltipMixin() {
 function statusApp() {
   return {
     summary: SUMMARY_DATA,
+    expandedChecks: {},
     ...tooltipMixin(),
+
+    toggleInfo(checkId) {
+      this.expandedChecks[checkId] = !this.expandedChecks[checkId];
+    },
   };
 }
 

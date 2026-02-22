@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ site_title }}</title>
   <link rel="stylesheet" href="static/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body>
@@ -44,15 +45,36 @@
         <span class="legend-item"><span class="legend-color cell-nodata"></span> No Data</span>
       </div>
 
+      {% if site_description %}
+      <div class="site-description">
+        <ul>
+          {% for item in site_description %}
+          <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
       <!-- Per-check rows -->
       <template x-for="check in summary.checks" :key="check.id">
         <a :href="'detail/' + check.id + '.html'" class="check-row check-row-link">
           <div class="check-header">
             <span class="check-name" x-text="check.name"></span>
             <span class="check-status-badge" :class="'badge-' + check.current_status" x-text="check.current_status"></span>
+            <button x-show="check.description || check.note"
+                    class="info-toggle"
+                    @click.prevent.stop="toggleInfo(check.id)"
+                    :aria-expanded="expandedChecks[check.id] || false"
+                    aria-label="Toggle details">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8zm6.5-.25A.75.75 0 017.25 7h1a.75.75 0 01.75.75v2.75h.25a.75.75 0 010 1.5h-2a.75.75 0 010-1.5h.25v-2h-.25a.75.75 0 01-.75-.75zM8 6a1 1 0 100-2 1 1 0 000 2z"/>
+              </svg>
+            </button>
           </div>
-          <p class="check-description" x-text="check.description"></p>
-          <p x-show="check.note" class="check-note" x-text="check.note"></p>
+          <div x-show="expandedChecks[check.id]" x-collapse>
+            <p class="check-description" x-text="check.description"></p>
+            <p x-show="check.note" class="check-note" x-text="check.note"></p>
+          </div>
           <div class="grid-90">
             <template x-for="day in check.days" :key="day.date">
               <div class="grid-cell"
