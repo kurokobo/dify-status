@@ -174,3 +174,12 @@
 {"check_id": "retrieve", "timestamp": "2026-02-23T12:44:03Z", "status": "up", "response_time_ms": 2761, "message": "HTTP 200, 1 record(s) returned"}
 {"check_id": "webhook_free", "timestamp": "2026-02-23T12:44:03Z", "status": "up", "response_time_ms": 85, "message": "Webhook processed in 0.1s"}
 {"check_id": "webhook_pro", "timestamp": "2026-02-23T12:44:04Z", "status": "up", "response_time_ms": 95, "message": "Webhook processed in 0.1s"}
+{"check_id": "web_ui", "timestamp": "2026-02-23T13:25:36Z", "status": "up", "response_time_ms": 850, "message": "HTTP 200"}
+{"check_id": "api", "timestamp": "2026-02-23T13:25:36Z", "status": "up", "response_time_ms": 709, "message": "HTTP 200, body contains 'pong'"}
+{"check_id": "sandbox", "timestamp": "2026-02-23T13:25:37Z", "status": "up", "response_time_ms": 472, "message": "HTTP 200, body contains 'pong from sandbox'"}
+{"check_id": "plugin", "timestamp": "2026-02-23T13:25:41Z", "status": "up", "response_time_ms": 3812, "message": "HTTP 200, body contains 'pong from plugin'"}
+{"check_id": "indexing_free", "timestamp": "2026-02-23T12:43:58.872546+00:00", "status": "down", "response_time_ms": -1, "message": "Status check failed: HTTP 404"}
+{"check_id": "indexing_pro", "timestamp": "2026-02-23T12:44:00.959684+00:00", "status": "down", "response_time_ms": -1, "message": "Status check failed: HTTP 404"}
+{"check_id": "retrieve", "timestamp": "2026-02-23T13:25:46Z", "status": "up", "response_time_ms": 863, "message": "HTTP 200, 1 record(s) returned"}
+{"check_id": "webhook_free", "timestamp": "2026-02-23T12:44:03.953796+00:00", "status": "up", "response_time_ms": 94, "message": "Webhook processed in 0.1s"}
+{"check_id": "webhook_pro", "timestamp": "2026-02-23T12:44:04.773308+00:00", "status": "up", "response_time_ms": 87, "message": "Webhook processed in 0.1s"}
