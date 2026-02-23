@@ -46,12 +46,45 @@
       </div>
 
       {% if site_description %}
-      <div class="site-description">
-        <ul>
-          {% for item in site_description %}
-          <li>{{ item }}</li>
-          {% endfor %}
-        </ul>
+      <div class="info-section" x-data="{ open: false }">
+        <button class="info-section-header" @click="open = !open" :aria-expanded="open">
+          <span>About This Project</span>
+          <svg class="chevron" :class="open ? 'chevron-up' : ''" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z"/>
+          </svg>
+        </button>
+        <div x-show="open" x-collapse>
+          <div class="info-section-body">
+            <ul>
+              {% for item in site_description %}
+              <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+            {% if notification.github_repo and notification.issue_number %}
+            <p>Subscribe to status updates: <a href="https://github.com/{{ notification.github_repo }}/issues/{{ notification.issue_number }}" target="_blank" rel="noopener">GitHub Issue #{{ notification.issue_number }}</a></p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if site_disclaimer %}
+      <div class="info-section" x-data="{ open: false }">
+        <button class="info-section-header" @click="open = !open" :aria-expanded="open">
+          <span>Disclaimer &amp; Terms of Use</span>
+          <svg class="chevron" :class="open ? 'chevron-up' : ''" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z"/>
+          </svg>
+        </button>
+        <div x-show="open" x-collapse>
+          <div class="info-section-body">
+            <ul>
+              {% for item in site_disclaimer %}
+              <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
       </div>
       {% endif %}
 
@@ -104,7 +137,7 @@
     </div>
 
     <footer>
-      <p>This is an unofficial status page. Not affiliated with Dify.</p>
+      <p>Unofficial · Not affiliated with Dify or LangGenius</p>
       <p>Built by <a href="https://github.com/kurokobo">@kurokobo</a> · <a href="https://github.com/kurokobo/dify-status">Source on GitHub</a></p>
     </footer>
   </div>

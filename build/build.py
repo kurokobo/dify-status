@@ -174,6 +174,8 @@ def build_site() -> None:
     env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)), autoescape=True)
 
     site_description = settings.get("site_description", [])
+    site_disclaimer = settings.get("site_disclaimer", [])
+    notification = settings.get("notification", {})
 
     # Render index.html
     tmpl_index = env.get_template("index.html")
@@ -181,6 +183,8 @@ def build_site() -> None:
         site_title=site_title,
         site_url=site_url,
         site_description=site_description,
+        site_disclaimer=site_disclaimer,
+        notification=notification,
         summary=summary,
         summary_json=json.dumps(summary, ensure_ascii=False),
     )
