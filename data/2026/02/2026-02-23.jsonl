@@ -218,3 +218,12 @@
 {"check_id": "indexing_pro", "timestamp": "2026-02-23T20:30:56Z", "status": "up", "response_time_ms": 1000, "message": "Indexing completed in 1.0s"}
 {"check_id": "retrieve", "timestamp": "2026-02-23T20:45:35Z", "status": "up", "response_time_ms": 2079, "message": "HTTP 200, 1 record(s) returned"}
 {"check_id": "webhook_pro", "timestamp": "2026-02-23T20:31:00Z", "status": "up", "response_time_ms": 83, "message": "Webhook processed in 0.1s"}
+{"check_id": "web_ui", "timestamp": "2026-02-23T21:01:08Z", "status": "up", "response_time_ms": 501, "message": "HTTP 200"}
+{"check_id": "api", "timestamp": "2026-02-23T21:01:08Z", "status": "up", "response_time_ms": 547, "message": "HTTP 200, body contains 'pong'"}
+{"check_id": "sandbox", "timestamp": "2026-02-23T21:01:09Z", "status": "up", "response_time_ms": 759, "message": "HTTP 200, body contains 'pong from sandbox'"}
+{"check_id": "plugin", "timestamp": "2026-02-23T21:01:12Z", "status": "up", "response_time_ms": 3190, "message": "HTTP 200, body contains 'pong from plugin'"}
+{"check_id": "indexing_free", "timestamp": "2026-02-23T20:30:52Z", "status": "up", "response_time_ms": 1000, "message": "Indexing completed in 1.0s"}
+{"check_id": "indexing_pro", "timestamp": "2026-02-23T20:45:33Z", "status": "up", "response_time_ms": 0, "message": "Indexing completed in 0.0s"}
+{"check_id": "retrieve", "timestamp": "2026-02-23T21:01:25Z", "status": "up", "response_time_ms": 1545, "message": "HTTP 200, 1 record(s) returned"}
+{"check_id": "webhook_free", "timestamp": "2026-02-23T20:30:59Z", "status": "up", "response_time_ms": 160, "message": "Webhook processed in 0.2s"}
+{"check_id": "webhook_pro", "timestamp": "2026-02-23T20:45:35Z", "status": "up", "response_time_ms": 86, "message": "Webhook processed in 0.1s"}
