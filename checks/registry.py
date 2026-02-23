@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 from checks.http_check import HttpCheck
 from checks.knowledge_check import KnowledgeCheck
+from checks.webhook_check import WebhookCheck
 
 if TYPE_CHECKING:
     from checks.base import BaseCheck
@@ -11,4 +12,5 @@ if TYPE_CHECKING:
 CHECK_TYPES: dict[str, type[BaseCheck]] = {
     "http": HttpCheck,
     "knowledge": KnowledgeCheck,
+    "webhook": WebhookCheck,
 }

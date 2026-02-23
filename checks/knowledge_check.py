@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import time
+import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -139,9 +140,11 @@ class KnowledgeCheck(BaseCheck):
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
         doc_name = f"status-check-{timestamp}"
 
+        random_text = str(uuid.uuid4()).replace("-", " ")
+
         body = {
             "name": doc_name,
-            "text": "ping",
+            "text": random_text,
             "indexing_technique": "economy",
             "process_rule": {"mode": "automatic"},
         }
