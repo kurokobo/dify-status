@@ -37,6 +37,19 @@ function tooltipMixin() {
       this.tooltip.visible = false;
     },
 
+    showLatestCellTooltip(event, status, name, timestamp, responseMs) {
+      this.tooltip.visible = true;
+      this.tooltip.x = event.clientX + 12;
+      this.tooltip.y = event.clientY - 40;
+      this.tooltip.date = timestamp
+        ? 'Latest \u00b7 ' + timestamp.substring(0, 16).replace('T', ' ') + ' UTC'
+        : 'Latest';
+      this.tooltip.name = name || '';
+      this.tooltip.status = status;
+      this.tooltip.uptime = null;
+      this.tooltip.avgResp = (responseMs !== undefined && responseMs >= 0) ? responseMs : -1;
+    },
+
     formatTimestamp(ts) {
       if (!ts) return '';
       return ts.replace('T', ' ').replace('Z', ' UTC');

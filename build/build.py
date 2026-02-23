@@ -62,6 +62,13 @@ def build_summary(
         ts = r["timestamp"][:10]  # YYYY-MM-DD
         by_check_date[r["check_id"]][ts].append(r)
 
+    # Find the latest individual record per check
+    latest_by_check: dict[str, dict] = {}
+    for r in records:
+        cid = r["check_id"]
+        if cid not in latest_by_check or r["timestamp"] > latest_by_check[cid]["timestamp"]:
+            latest_by_check[cid] = r
+
     check_ids = [c["id"] for c in checks_config]
     check_names = {c["id"]: c["name"] for c in checks_config}
     check_descriptions = {c["id"]: c.get("description", "") for c in checks_config}
@@ -94,13 +101,23 @@ def build_summary(
             if day_status != "nodata":
                 overall_days[d].append(day_status)
 
+        # Latest individual check result for this check
+        latest_rec = latest_by_check.get(cid)
+        latest_status = latest_rec["status"] if latest_rec else "nodata"
+        latest_timestamp = latest_rec["timestamp"] if latest_rec else None
+        latest_response_ms = latest_rec["response_time_ms"] if latest_rec else -1
+        latest_message = latest_rec.get("message", "") if latest_rec else ""
+
         checks_summary.append({
             "id": cid,
             "name": check_names[cid],
             "description": check_descriptions[cid],
             "note": check_notes[cid],
             "days": days,
-            "current_status": days[-1]["status"] if days else "nodata",
+            "current_status": latest_status,
+            "latest_timestamp": latest_timestamp,
+            "latest_response_ms": latest_response_ms,
+            "latest_message": latest_message,
         })
 
     # Overall row

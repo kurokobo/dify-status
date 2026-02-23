@@ -12,39 +12,12 @@
   <div class="container" x-data="statusApp()">
     <header>
       <h1>{{ site_title }}</h1>
-      <div class="overall-status" :class="'status-banner-' + summary.current_overall_status">
-        <span x-text="summary.current_overall"></span>
-      </div>
       <p class="last-checked" x-show="summary.last_checked">
         Last checked: <span x-text="formatTimestamp(summary.last_checked)"></span>
       </p>
     </header>
 
     <main>
-      <!-- Overall -->
-      <div class="check-row">
-        <div class="check-header">
-          <span class="check-name">Overall</span>
-        </div>
-        <div class="grid-90">
-          <template x-for="day in summary.overall_days" :key="day.date">
-            <div class="grid-cell"
-                 :class="'cell-' + day.status"
-                 :title="day.date + ': ' + day.status"
-                 @mouseenter="showTooltip($event, day)"
-                 @mouseleave="hideTooltip()">
-            </div>
-          </template>
-        </div>
-      </div>
-
-      <div class="legend">
-        <span class="legend-item"><span class="legend-color cell-up"></span> Up</span>
-        <span class="legend-item"><span class="legend-color cell-degraded"></span> Degraded</span>
-        <span class="legend-item"><span class="legend-color cell-down"></span> Down</span>
-        <span class="legend-item"><span class="legend-color cell-nodata"></span> No Data</span>
-      </div>
-
       {% if site_description %}
       <div class="info-section" x-data="{ open: false }">
         <button class="info-section-header" @click="open = !open" :aria-expanded="open">
@@ -71,7 +44,7 @@
       {% if site_disclaimer %}
       <div class="info-section" x-data="{ open: false }">
         <button class="info-section-header" @click="open = !open" :aria-expanded="open">
-          <span>Disclaimer &amp; Terms of Use</span>
+          <span>Disclaimer</span>
           <svg class="chevron" :class="open ? 'chevron-up' : ''" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
             <path d="M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z"/>
           </svg>
@@ -87,6 +60,54 @@
         </div>
       </div>
       {% endif %}
+
+      <!-- Compact current status for all checks -->
+      <div class="current-status-section">
+        <p class="section-label">Current Status</p>
+        <div class="overall-status" :class="'status-banner-' + summary.current_overall_status">
+          <span x-text="summary.current_overall"></span>
+        </div>
+        <div class="current-status-grid">
+          <template x-for="check in summary.checks" :key="check.id">
+            <a :href="'detail/' + check.id + '.html'" class="current-status-item">
+              <span class="current-status-item-name" x-text="check.name"></span>
+              <span class="check-status-badge" :class="'badge-' + check.current_status" x-text="check.current_status"></span>
+            </a>
+          </template>
+        </div>
+      </div>
+
+      <!-- 90-day history -->
+      <h2 class="section-heading">90-Day History</h2>
+
+      <!-- Overall -->
+      <div class="check-row">
+        <div class="check-header">
+          <span class="check-name">Overall</span>
+        </div>
+        <div class="grid-90">
+          <template x-for="day in summary.overall_days" :key="day.date">
+            <div class="grid-cell"
+                 :class="'cell-' + day.status"
+                 :title="day.date + ': ' + day.status"
+                 @mouseenter="showTooltip($event, day)"
+                 @mouseleave="hideTooltip()">
+            </div>
+          </template>
+          <div class="grid-cell cell-latest"
+               :class="'cell-' + summary.current_overall_status"
+               @mouseenter="showLatestCellTooltip($event, summary.current_overall_status, '', summary.last_checked, -1)"
+               @mouseleave="hideTooltip()">
+          </div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <span class="legend-item"><span class="legend-color cell-up"></span> Up</span>
+        <span class="legend-item"><span class="legend-color cell-degraded"></span> Degraded</span>
+        <span class="legend-item"><span class="legend-color cell-down"></span> Down</span>
+        <span class="legend-item"><span class="legend-color cell-nodata"></span> No Data</span>
+      </div>
 
       <!-- Per-check rows -->
       <template x-for="check in summary.checks" :key="check.id">
@@ -117,6 +138,11 @@
                    @mouseleave.stop="hideTooltip()">
               </div>
             </template>
+            <div class="grid-cell cell-latest"
+                 :class="'cell-' + check.current_status"
+                 @mouseenter.stop="showLatestCellTooltip($event, check.current_status, check.name, check.latest_timestamp, check.latest_response_ms)"
+                 @mouseleave.stop="hideTooltip()">
+            </div>
           </div>
         </a>
       </template>

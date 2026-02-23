@@ -36,6 +36,12 @@
                  @mouseleave="hideTooltip()">
             </div>
           </template>
+          <div class="grid-cell cell-latest"
+               :class="'cell-' + checkSummary.current_status"
+               @click="checkSummary.latest_timestamp && selectDate(checkSummary.latest_timestamp.substring(0, 10))"
+               @mouseenter="showLatestCellTooltip($event, checkSummary.current_status, '{{ check.name }}', checkSummary.latest_timestamp, checkSummary.latest_response_ms)"
+               @mouseleave="hideTooltip()">
+          </div>
         </div>
       </div>
 
