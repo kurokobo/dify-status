@@ -2,7 +2,7 @@ name: Run Status Checks
 
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "12/15 * * * *"
   workflow_dispatch:
 
 concurrency:
