@@ -3,5 +3,9 @@
   "api": "up",
   "sandbox": "up",
   "plugin": "up",
-  "retrieve": "up"
+  "retrieve": "up",
+  "indexing_free": "up",
+  "indexing_pro": "up",
+  "webhook_free": "up",
+  "webhook_pro": "up"
 }
