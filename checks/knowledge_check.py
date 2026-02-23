@@ -80,6 +80,7 @@ class KnowledgeCheck(BaseCheck):
         document_id = state["document_id"]
         batch_id = state["batch_id"]
         dataset_id = self._dataset_id()
+        uploaded_at = state["uploaded_at"]
 
         try:
             async with httpx.AsyncClient(
@@ -93,13 +94,15 @@ class KnowledgeCheck(BaseCheck):
                     return self._result(
                         Status.DOWN, -1,
                         f"Status check failed: HTTP {resp.status_code}",
+                        timestamp=uploaded_at,
                     )
 
                 data = resp.json().get("data", [])
                 if not data:
                     await self._delete_document(client, dataset_id, document_id)
                     return self._result(
-                        Status.DOWN, -1, "Status check returned empty data"
+                        Status.DOWN, -1, "Status check returned empty data",
+                        timestamp=uploaded_at,
                     )
 
                 doc_status = data[0]
@@ -114,12 +117,14 @@ class KnowledgeCheck(BaseCheck):
                     return self._result(
                         Status.UP, duration_ms,
                         f"Indexing completed in {duration_s:.1f}s",
+                        timestamp=uploaded_at,
                     )
                 elif indexing_status == "error":
                     error_msg = doc_status.get("error", "unknown error")
                     await self._delete_document(client, dataset_id, document_id)
                     return self._result(
-                        Status.DOWN, -1, f"Indexing failed: {error_msg}"
+                        Status.DOWN, -1, f"Indexing failed: {error_msg}",
+                        timestamp=uploaded_at,
                     )
                 else:
                     # Still indexing after ~15 minutes
@@ -127,12 +132,15 @@ class KnowledgeCheck(BaseCheck):
                     return self._result(
                         Status.DOWN, -1,
                         f"Indexing not completed within ~15 minutes (status: {indexing_status})",
+                        timestamp=uploaded_at,
                     )
 
         except httpx.TimeoutException:
-            return self._result(Status.DOWN, -1, "Timeout checking indexing status")
+            return self._result(Status.DOWN, -1, "Timeout checking indexing status",
+                                timestamp=uploaded_at)
         except Exception as exc:
-            return self._result(Status.DOWN, -1, f"Error checking status: {exc}")
+            return self._result(Status.DOWN, -1, f"Error checking status: {exc}",
+                                timestamp=uploaded_at)
 
     async def _upload_document(self) -> CheckResult | None:
         """Upload a new document. Returns a CheckResult only on failure (None = success)."""
@@ -178,7 +186,7 @@ class KnowledgeCheck(BaseCheck):
                 self._save_state({
                     "document_id": document_id,
                     "batch_id": batch_id,
-                    "uploaded_at": datetime.now(timezone.utc).isoformat(),
+                    "uploaded_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
                 })
                 return None  # Success — no result to report yet
 

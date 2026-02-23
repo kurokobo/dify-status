@@ -77,6 +77,7 @@ class WebhookCheck(BaseCheck):
 
     async def _check_previous(self, state: dict[str, Any]) -> CheckResult:
         trigger_id = state["trigger_id"]
+        triggered_at = state["triggered_at"]
 
         try:
             async with httpx.AsyncClient(
@@ -90,6 +91,7 @@ class WebhookCheck(BaseCheck):
                     return self._result(
                         Status.DOWN, -1,
                         f"Failed to fetch workflow logs: HTTP {resp.status_code}",
+                        timestamp=triggered_at,
                     )
 
                 logs = resp.json().get("data", [])
@@ -97,6 +99,7 @@ class WebhookCheck(BaseCheck):
                     return self._result(
                         Status.DOWN, -1,
                         "Webhook trigger not processed within check interval",
+                        timestamp=triggered_at,
                     )
 
                 workflow_run = logs[0].get("workflow_run", {})
@@ -108,23 +111,28 @@ class WebhookCheck(BaseCheck):
                     return self._result(
                         Status.UP, elapsed_ms,
                         f"Webhook processed in {elapsed:.1f}s",
+                        timestamp=triggered_at,
                     )
                 elif status == "failed":
                     error = workflow_run.get("error", "unknown error")
                     return self._result(
                         Status.DOWN, -1,
                         f"Webhook processing failed: {error}",
+                        timestamp=triggered_at,
                     )
                 else:
                     return self._result(
                         Status.DOWN, -1,
                         f"Webhook not completed (status: {status})",
+                        timestamp=triggered_at,
                     )
 
         except httpx.TimeoutException:
-            return self._result(Status.DOWN, -1, "Timeout checking workflow logs")
+            return self._result(Status.DOWN, -1, "Timeout checking workflow logs",
+                                timestamp=triggered_at)
         except Exception as exc:
-            return self._result(Status.DOWN, -1, f"Error checking status: {exc}")
+            return self._result(Status.DOWN, -1, f"Error checking status: {exc}",
+                                timestamp=triggered_at)
 
     async def _trigger_webhook(self) -> CheckResult | None:
         """Trigger the webhook. Returns a CheckResult only on failure."""
@@ -156,7 +164,7 @@ class WebhookCheck(BaseCheck):
 
                 self._save_state({
                     "trigger_id": trigger_id,
-                    "triggered_at": now.isoformat(),
+                    "triggered_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
                 })
                 return None  # Success — result will be checked next cycle
 

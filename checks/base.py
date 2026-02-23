@@ -38,11 +38,12 @@ class BaseCheck(ABC):
         ...
 
     def _result(
-        self, status: Status, response_time_ms: int, message: str
+        self, status: Status, response_time_ms: int, message: str,
+        timestamp: str | None = None,
     ) -> CheckResult:
         return CheckResult(
             check_id=self.check_id,
-            timestamp=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            timestamp=timestamp or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             status=status,
             response_time_ms=response_time_ms,
             message=message,
