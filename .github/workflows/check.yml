@@ -1,8 +1,7 @@
 name: Run Status Checks
 
 on:
-  schedule:
-    - cron: "12/15 * * * *"
+  # Triggered every 15 minutes by cron-job.org (schedule: */15 * * * *)
   workflow_dispatch:
 
 concurrency:

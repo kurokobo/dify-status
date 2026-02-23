@@ -8,7 +8,7 @@ settings:
     issue_number: 1
   site_description:
     - "Periodically monitors the operational status of cloud.dify.ai by running pre-built apps and knowledge bases via the API, simulating real user operations."
-    - "Runs every 15 minutes via GitHub Actions. Data gaps may occur during GitHub-side outages."
+    - "Runs every 15 minutes, triggered by cron-job.org via GitHub Actions workflow_dispatch. Data gaps may occur during outages on either side."
     - "All API-dependent checks share the same underlying API layer. An API outage will cause all such checks to fail simultaneously."
     - "Pro plan checks may stop working after around July 2026 due to the subscription period ending."
     - "Status change notifications (incidents and recoveries) are posted as comments to a GitHub Issue."

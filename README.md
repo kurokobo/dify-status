@@ -52,7 +52,7 @@ uv run python -m http.server -d site 8000
 
 ## Architecture
 
-- **Checks** (`checks/`) run every 15 minutes via GitHub Actions, appending results to `data/YYYY/MM/YYYY-MM-DD.jsonl`
+- **Checks** (`checks/`) run every 15 minutes, triggered by [cron-job.org](https://cron-job.org) via GitHub Actions `workflow_dispatch`, appending results to `data/YYYY/MM/YYYY-MM-DD.jsonl`
 - **Notifications** (`checks/notify.py`) detect status transitions and post comments to a GitHub Issue via the `gh` CLI
 - **Build** (`build/build.py`) reads all JSONL data, computes 90-day summaries, and renders Jinja2 templates into `site/`
 - **Deploy** (`build-pages.yml`) triggers on data/config changes and publishes `site/` to GitHub Pages
