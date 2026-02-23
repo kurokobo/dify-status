@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import yaml
@@ -34,10 +34,15 @@ def save_state(state: dict[str, str]) -> None:
 
 
 def get_latest_results(data_dir: Path) -> dict[str, dict]:
-    """Get the most recent result for each check from today's JSONL."""
+    """Get the most recent result for each check, trying today's file then yesterday's."""
     now = datetime.now(timezone.utc)
-    day_file = data_dir / now.strftime("%Y/%m/%Y-%m-%d.jsonl")
-    if not day_file.exists():
+    day_file = None
+    for days_ago in range(2):
+        candidate = data_dir / (now - timedelta(days=days_ago)).strftime("%Y/%m/%Y-%m-%d.jsonl")
+        if candidate.exists():
+            day_file = candidate
+            break
+    if day_file is None:
         return {}
 
     latest: dict[str, dict] = {}
@@ -91,7 +96,7 @@ def run_notify() -> None:
     latest = get_latest_results(data_dir)
 
     if not latest:
-        print("No results found for today")
+        print("No results found for today or yesterday")
         return
 
     incidents: list[str] = []
@@ -119,19 +124,32 @@ def run_notify() -> None:
 
     save_state(new_state)
 
+    # Checks still unhealthy after this run
+    ongoing = [check_names.get(cid, cid) for cid, status in new_state.items() if not is_healthy(status)]
+
     now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 
-    if incidents:
-        body = f"**Incident detected** — {now_str}\n\n" + "\n".join(incidents)
+    if incidents and recoveries:
+        # Both new incidents and recoveries in the same run: single combined comment
+        lines = [f"📊 **Status Update** — {now_str}", "", "🔴 New incidents:"] + incidents + ["", "🟢 Recovered:"] + recoveries
+        if ongoing:
+            lines += ["", "🟡 Ongoing issues:"] + [f"- **{name}**" for name in ongoing]
+        body = "\n".join(lines)
+        print(f"Posting status update comment:\n{body}")
+        post_issue_comment(repo, issue_number, body)
+    elif incidents:
+        body = f"🔴 **Incident detected** — {now_str}\n\n" + "\n".join(incidents)
         print(f"Posting incident comment:\n{body}")
         post_issue_comment(repo, issue_number, body)
-
-    if recoveries:
-        body = f"**Recovered** — {now_str}\n\n" + "\n".join(recoveries)
+    elif recoveries:
+        if ongoing:
+            lines = [f"🟡 **Partially Recovered** — {now_str}", "", "🟢 Recovered:"] + recoveries + ["", "🟡 Ongoing issues:"] + [f"- **{name}**" for name in ongoing]
+            body = "\n".join(lines)
+        else:
+            body = f"🟢 **Recovered** — {now_str}\n\n" + "\n".join(recoveries)
         print(f"Posting recovery comment:\n{body}")
         post_issue_comment(repo, issue_number, body)
-
-    if not incidents and not recoveries:
+    else:
         print("No status transitions detected")
 
 
