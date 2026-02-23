@@ -1,0 +1,5 @@
+{"check_id": "web_ui", "timestamp": "2026-02-23T14:00:46Z", "status": "up", "response_time_ms": 500, "message": "HTTP 200"}
+{"check_id": "api", "timestamp": "2026-02-23T14:00:46Z", "status": "up", "response_time_ms": 364, "message": "HTTP 200, body contains 'pong'"}
+{"check_id": "sandbox", "timestamp": "2026-02-23T14:00:47Z", "status": "up", "response_time_ms": 999, "message": "HTTP 200, body contains 'pong from sandbox'"}
+{"check_id": "plugin", "timestamp": "2026-02-23T14:00:52Z", "status": "up", "response_time_ms": 4293, "message": "HTTP 200, body contains 'pong from plugin'"}
+{"check_id": "retrieve", "timestamp": "2026-02-23T14:00:57Z", "status": "up", "response_time_ms": 3001, "message": "HTTP 200, 1 record(s) returned"}
