@@ -83,6 +83,17 @@ checks:
       api_key_env: "DIFY_KNOWLEDGE_PRO_API_KEY"
       timeout: 30
 
+  - id: retrieve
+    name: "Knowledge Retrieval"
+    type: retrieve
+    description: "Send a semantic retrieval query to a pre-built High-Quality knowledge base and verify the vector search endpoint responds correctly"
+    note: "Depends on API; if the API is down, this check will also fail. Uses semantic search (High-Quality mode) to exercise the vector DB"
+    params:
+      base_url: "https://api.dify.ai/v1"
+      dataset_id_env: "DIFY_RETRIEVE_DATASET_ID"
+      api_key_env: "DIFY_RETRIEVE_API_KEY"
+      timeout: 30
+
   - id: webhook
     name: "Webhook Trigger (Free Plan)"
     type: webhook
