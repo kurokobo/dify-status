@@ -102,11 +102,24 @@
         </div>
       </div>
 
-      <div class="legend">
-        <span class="legend-item"><span class="legend-color cell-up"></span> Up</span>
-        <span class="legend-item"><span class="legend-color cell-degraded"></span> Degraded</span>
-        <span class="legend-item"><span class="legend-color cell-down"></span> Down</span>
-        <span class="legend-item"><span class="legend-color cell-nodata"></span> No Data</span>
+      <div x-data="{ open: false }">
+        <div class="legend">
+          <span class="legend-item"><span class="legend-color cell-up"></span> Up</span>
+          <span class="legend-item"><span class="legend-color cell-degraded"></span> Degraded</span>
+          <span class="legend-item"><span class="legend-color cell-down"></span> Down</span>
+          <span class="legend-item"><span class="legend-color cell-nodata"></span> No Data</span>
+          <button class="info-toggle legend-info-toggle" @click="open = !open" :aria-expanded="open" aria-label="Show status criteria">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8zm6.5-.25A.75.75 0 017.25 7h1a.75.75 0 01.75.75v2.75h.25a.75.75 0 010 1.5h-2a.75.75 0 010-1.5h.25v-2h-.25a.75.75 0 01-.75-.75zM8 6a1 1 0 100-2 1 1 0 000 2z"/>
+            </svg>
+          </button>
+        </div>
+        <div x-show="open" x-collapse>
+          <div class="legend-criteria">
+            <p><strong>Overall:</strong> Up = all components Up; Degraded = at least one component was Degraded or Down; Down = at least one component was Down</p>
+            <p><strong>Per component:</strong> Up = all checks passed; Degraded = &lt;50% of checks were down; Down = &ge;50% of checks were down</p>
+          </div>
+        </div>
       </div>
 
       <!-- Per-check rows -->

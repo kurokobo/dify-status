@@ -34,7 +34,7 @@ def load_all_data(data_dir: Path) -> list[dict]:
 
 
 def compute_day_status(statuses: list[str]) -> str:
-    """Determine overall status for a day from individual check statuses."""
+    """Determine day status for a single check from individual check results."""
     if not statuses:
         return "nodata"
     down_count = statuses.count("down")
@@ -43,6 +43,17 @@ def compute_day_status(statuses: list[str]) -> str:
     if down_count / len(statuses) >= 0.5:
         return "down"
     return "degraded"
+
+
+def compute_overall_day_status(check_day_statuses: list[str]) -> str:
+    """Determine overall status for a day from per-check day statuses."""
+    if not check_day_statuses:
+        return "nodata"
+    if any(s == "down" for s in check_day_statuses):
+        return "down"
+    if any(s == "degraded" for s in check_day_statuses):
+        return "degraded"
+    return "up"
 
 
 def build_summary(
@@ -126,7 +137,7 @@ def build_summary(
         if d in overall_days:
             overall_day_list.append({
                 "date": d,
-                "status": compute_day_status(overall_days[d]),
+                "status": compute_overall_day_status(overall_days[d]),
             })
         else:
             overall_day_list.append({"date": d, "status": "nodata"})

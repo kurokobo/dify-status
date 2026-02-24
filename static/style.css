@@ -433,8 +433,9 @@ h1 {
   display: flex;
   gap: 1rem;
   justify-content: flex-end;
+  align-items: center;
   margin-top: 0.75rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.25rem;
   font-size: 0.8rem;
   color: var(--color-text-secondary);
 }
@@ -450,6 +451,22 @@ h1 {
   width: 12px;
   height: 12px;
   border-radius: 2px;
+}
+
+.legend-criteria {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  text-align: right;
+  padding-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+.legend-criteria p + p {
+  margin-top: 0.15rem;
+}
+
+.legend-info-toggle {
+  margin-left: -4px;
 }
 
 /* Compact current status grid */
@@ -533,9 +550,14 @@ h1 {
   transition: background 0.15s, color 0.15s;
 }
 
-.day-nav-btn:hover {
+.day-nav-btn:hover:not(:disabled) {
   background: var(--color-surface);
   color: var(--color-text);
+}
+
+.day-nav-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
 /* Footer */
