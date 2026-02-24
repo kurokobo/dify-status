@@ -292,12 +292,12 @@ function detailApp() {
       if (!utcCanvas || !localCanvas) return;
 
       const isKnowledge = this._isKnowledge();
-      const filtered = records.filter(r => r.response_time_ms >= 0);
-      const data = filtered.map(r => isKnowledge ? r.response_time_ms / 1000 : r.response_time_ms);
       const unit = isKnowledge ? 's' : 'ms';
       const chartLabel = isKnowledge ? 'Indexing Time (s)' : 'Response Time (ms)';
-      const utcLabels = filtered.map(r => r.timestamp.substring(11, 16));
-      const localLabels = filtered.map(r => {
+      // Use null for missing values so Chart.js breaks the line at DOWN points
+      const data = records.map(r => r.response_time_ms >= 0 ? (isKnowledge ? r.response_time_ms / 1000 : r.response_time_ms) : null);
+      const utcLabels = records.map(r => r.timestamp.substring(11, 16));
+      const localLabels = records.map(r => {
         const d = new Date(r.timestamp);
         const timePart = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
         const shift = this._localDayShift(r.timestamp);
