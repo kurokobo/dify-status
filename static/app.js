@@ -123,6 +123,29 @@ function detailApp() {
     hourLabelsDisplay: _computeHourLabels(false),
     ...tooltipMixin(),
 
+    _availableDates() {
+      const dates = (this.checkSummary.days || []).map(d => d.date);
+      const latestDate = this.checkSummary.latest_timestamp
+        ? this.checkSummary.latest_timestamp.substring(0, 10)
+        : null;
+      if (latestDate && (dates.length === 0 || dates[dates.length - 1] !== latestDate)) {
+        dates.push(latestDate);
+      }
+      return dates;
+    },
+
+    prevDate() {
+      const dates = this._availableDates();
+      const idx = dates.indexOf(this.selectedDate);
+      return idx > 0 ? dates[idx - 1] : null;
+    },
+
+    nextDate() {
+      const dates = this._availableDates();
+      const idx = dates.indexOf(this.selectedDate);
+      return (idx >= 0 && idx < dates.length - 1) ? dates[idx + 1] : null;
+    },
+
     _isKnowledge() {
       return typeof CHECK_TYPE !== 'undefined' && CHECK_TYPE === 'knowledge';
     },
@@ -181,7 +204,7 @@ function detailApp() {
           return r.json();
         })
         .then(data => {
-          this.dayRecords = data;
+          this.dayRecords = [...data].reverse();
           this.hourlyStatus = this.computeHourlyStatus(data);
           this.loading = false;
           this.$nextTick(() => this.renderChart(data));

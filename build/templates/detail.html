@@ -55,7 +55,9 @@
       <!-- Daily detail -->
       <section class="daily-detail">
         <div class="daily-detail-header">
+          <button class="day-nav-btn" x-show="prevDate()" @click="selectDate(prevDate())" aria-label="Previous day">&larr;</button>
           <h2 x-text="selectedDate ? 'Results for ' + selectedDate + ' (UTC)' : 'Click a day to view details'"></h2>
+          <button class="day-nav-btn" x-show="nextDate()" @click="selectDate(nextDate())" aria-label="Next day">&rarr;</button>
           <div x-show="!loading && dayRecords.length > 0" class="tz-switcher">
             <button :class="{ 'tz-active': !showLocalTime }" @click="showLocalTime = false">UTC</button>
             <button :class="{ 'tz-active': showLocalTime }" @click="showLocalTime = true" x-text="tzLabel"></button>
@@ -139,7 +141,16 @@
 
     <footer>
       <p>This is an unofficial status page. Not affiliated with Dify.</p>
-      <p>Built by <a href="https://github.com/kurokobo">@kurokobo</a> · <a href="https://github.com/kurokobo/dify-status">Source on GitHub</a></p>
+      <p>Built by <a href="https://github.com/kurokobo">@kurokobo</a> with AI assistance · <a href="https://github.com/kurokobo/dify-status">Source on GitHub</a></p>
+      <div class="footer-support">
+        <a href="https://github.com/sponsors/kurokobo" class="sponsor-btn" target="_blank" rel="noopener">
+          <svg height="20" viewBox="0 0 16 16" fill="currentColor" style="vertical-align:middle;margin-right:6px;"><path d="M4.25 2.5c-1.336 0-2.75 1.164-2.75 3 0 2.15 1.58 4.144 3.365 5.682A20.565 20.565 0 008 13.393a20.561 20.561 0 003.135-2.211C12.92 9.644 14.5 7.65 14.5 5.5c0-1.836-1.414-3-2.75-3-1.373 0-2.609.986-3.029 2.456a.75.75 0 01-1.442 0C6.859 3.486 5.623 2.5 4.25 2.5z"/></svg>
+          Sponsor on GitHub
+        </a>
+        <a href="https://www.buymeacoffee.com/kurokobo" class="bmc-btn" target="_blank" rel="noopener">
+          <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height:60px;width:234px;border-radius:12px;">
+        </a>
+      </div>
     </footer>
   </div>
 
