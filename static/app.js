@@ -152,7 +152,7 @@ function detailApp() {
 
     formatTime(ms) {
       if (this._isKnowledge()) {
-        return (ms / 1000).toFixed(1) + ' s';
+        return Math.round(ms / 1000) + ' s';
       }
       return ms + ' ms';
     },

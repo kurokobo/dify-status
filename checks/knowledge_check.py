@@ -113,10 +113,10 @@ class KnowledgeCheck(BaseCheck):
                     completed_at = doc_status.get("completed_at", 0)
                     duration_ms = int((completed_at - started_at) * 1000)
                     await self._delete_document(client, dataset_id, document_id)
-                    duration_s = duration_ms / 1000
+                    duration_s = round(duration_ms / 1000)
                     return self._result(
                         Status.UP, duration_ms,
-                        f"Indexing completed in {duration_s:.1f}s",
+                        f"Indexing completed in {duration_s}s",
                         timestamp=uploaded_at,
                     )
                 elif indexing_status == "error":
@@ -168,7 +168,7 @@ class KnowledgeCheck(BaseCheck):
 
                 if resp.status_code != 200:
                     return self._result(
-                        Status.DOWN, elapsed_ms,
+                        Status.DOWN, -1,
                         f"Upload failed: HTTP {resp.status_code}",
                     )
 
@@ -179,7 +179,7 @@ class KnowledgeCheck(BaseCheck):
 
                 if not document_id or not batch_id:
                     return self._result(
-                        Status.DOWN, elapsed_ms,
+                        Status.DOWN, -1,
                         "Upload failed: missing document ID or batch ID in response",
                     )
 
