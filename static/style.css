@@ -204,12 +204,44 @@ h1 {
   padding: 0 2px;
 }
 
+.hour-label-item {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+  width: 0;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+.hour-label-shift {
+  font-size: 0.6rem;
+  opacity: 0.75;
+}
+
 /* Chart */
 .chart-container {
   margin-top: 1rem;
   margin-bottom: 2rem;
-  height: 200px;
+}
+
+.chart-canvas-area {
   position: relative;
+  height: 160px;
+}
+
+.chart-canvas-area canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transition: opacity 0.15s;
+}
+
+.chart-inactive {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .section-subheading {
@@ -225,9 +257,47 @@ h1 {
   margin-top: 1.5rem;
 }
 
-.daily-detail h2 {
-  font-size: 1.1rem;
+.daily-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.daily-detail-header h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0;
+}
+
+.tz-switcher {
+  display: inline-flex;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.tz-switcher button {
+  padding: 0.2rem 0.65rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.tz-switcher button.tz-active {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.tz-switcher button:hover:not(.tz-active) {
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
 .results-table {

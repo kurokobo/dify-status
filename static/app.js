@@ -54,6 +54,22 @@ function tooltipMixin() {
       if (!ts) return '';
       return ts.replace('T', ' ').replace('Z', ' UTC');
     },
+
+    localTimeLabel(ts) {
+      if (!ts) return '';
+      const offset = -new Date().getTimezoneOffset();
+      if (offset === 0) return '';
+      const abs = Math.abs(offset);
+      const h = Math.floor(abs / 60);
+      const m = abs % 60;
+      const sign = offset >= 0 ? '+' : '-';
+      const tz = m > 0
+        ? `UTC${sign}${h}:${String(m).padStart(2, '0')}`
+        : `UTC${sign}${h}`;
+      const d = new Date(ts);
+      const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+      return `${timeStr} ${tz}`;
+    },
   };
 }
 
@@ -69,6 +85,29 @@ function statusApp() {
   };
 }
 
+function _computeTzLabel() {
+  const offset = -new Date().getTimezoneOffset();
+  const abs = Math.abs(offset);
+  const h = Math.floor(abs / 60);
+  const m = abs % 60;
+  const sign = offset >= 0 ? '+' : '-';
+  return m > 0
+    ? `UTC${sign}${h}:${String(m).padStart(2, '0')}`
+    : `UTC${sign}${h}`;
+}
+
+function _computeHourLabels(showLocal) {
+  return [0, 6, 12, 18, 23].map(utcH => {
+    if (!showLocal) return { key: utcH, label: String(utcH), shift: 0 };
+    const d = new Date(0);
+    d.setUTCHours(utcH);
+    const localHour = d.getHours();
+    // new Date(0) is UTC Jan 1; local date() of 1=same, 2=+1d, 31=−1d
+    const shift = d.getDate() === 1 ? 0 : (d.getDate() === 2 ? 1 : -1);
+    return { key: utcH, label: String(localHour), shift };
+  });
+}
+
 function detailApp() {
   return {
     summary: SUMMARY_DATA,
@@ -77,7 +116,11 @@ function detailApp() {
     dayRecords: [],
     hourlyStatus: [],
     loading: false,
-    _chart: null,
+    _chartUtc: null,
+    _chartLocal: null,
+    showLocalTime: false,
+    tzLabel: _computeTzLabel(),
+    hourLabelsDisplay: _computeHourLabels(false),
     ...tooltipMixin(),
 
     _isKnowledge() {
@@ -91,12 +134,38 @@ function detailApp() {
       return ms + ' ms';
     },
 
+    _localDayShift(timestamp) {
+      const d = new Date(timestamp);
+      const utcDate = timestamp.substring(0, 10);
+      const localDate = [
+        d.getFullYear(),
+        String(d.getMonth() + 1).padStart(2, '0'),
+        String(d.getDate()).padStart(2, '0'),
+      ].join('-');
+      if (localDate === utcDate) return 0;
+      return Math.round((new Date(localDate) - new Date(utcDate)) / 86400000);
+    },
+
+    formatDisplayTime(timestamp) {
+      if (!this.showLocalTime) return timestamp.substring(11, 19);
+      const d = new Date(timestamp);
+      const timePart = d.toLocaleTimeString([], {
+        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+      });
+      const shift = this._localDayShift(timestamp);
+      if (shift === 0) return timePart;
+      return `${timePart} (${shift > 0 ? '+' : ''}${shift}d)`;
+    },
+
     init() {
       const days = this.checkSummary.days || [];
       const latest = [...days].reverse().find(d => d.status !== 'nodata');
       if (latest) {
         this.selectDate(latest.date);
       }
+      this.$watch('showLocalTime', () => {
+        this.hourLabelsDisplay = _computeHourLabels(this.showLocalTime);
+      });
     },
 
     selectDate(date) {
@@ -153,28 +222,21 @@ function detailApp() {
       return hours;
     },
 
-    renderChart(records) {
-      const canvas = this.$refs.responseChart;
-      if (!canvas) return;
-
-      const filtered = records.filter(r => r.response_time_ms >= 0);
-      const labels = filtered.map(r => r.timestamp.substring(11, 16));
-      const isKnowledge = this._isKnowledge();
-      const data = filtered.map(r => isKnowledge ? r.response_time_ms / 1000 : r.response_time_ms);
-      const unit = isKnowledge ? 's' : 'ms';
-      const chartLabel = isKnowledge ? 'Indexing Time (s)' : 'Response Time (ms)';
-
-      if (this._chart) {
-        this._chart.destroy();
+    _updateOrCreateChart(key, canvas, labels, data, unit, chartLabel, xTitle) {
+      if (this[key]) {
+        this[key].data.labels = labels;
+        this[key].data.datasets[0].data = data;
+        this[key].options.scales.x.title.text = xTitle;
+        this[key].update('none');
+        return;
       }
-
-      this._chart = new Chart(canvas, {
+      this[key] = new Chart(canvas, {
         type: 'line',
         data: {
-          labels: labels,
+          labels,
           datasets: [{
             label: chartLabel,
-            data: data,
+            data,
             borderColor: '#2da44e',
             backgroundColor: 'rgba(45, 164, 78, 0.1)',
             fill: true,
@@ -186,12 +248,10 @@ function detailApp() {
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-          },
+          plugins: { legend: { display: false } },
           scales: {
             x: {
-              title: { display: true, text: 'Time (UTC)' },
+              title: { display: true, text: xTitle },
               ticks: { maxTicksLimit: 12 },
             },
             y: {
@@ -203,11 +263,40 @@ function detailApp() {
       });
     },
 
+    renderChart(records) {
+      const utcCanvas = this.$refs.responseChartUtc;
+      const localCanvas = this.$refs.responseChartLocal;
+      if (!utcCanvas || !localCanvas) return;
+
+      const isKnowledge = this._isKnowledge();
+      const filtered = records.filter(r => r.response_time_ms >= 0);
+      const data = filtered.map(r => isKnowledge ? r.response_time_ms / 1000 : r.response_time_ms);
+      const unit = isKnowledge ? 's' : 'ms';
+      const chartLabel = isKnowledge ? 'Indexing Time (s)' : 'Response Time (ms)';
+      const utcLabels = filtered.map(r => r.timestamp.substring(11, 16));
+      const localLabels = filtered.map(r => {
+        const d = new Date(r.timestamp);
+        const timePart = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+        const shift = this._localDayShift(r.timestamp);
+        return shift === 0 ? timePart : `${timePart} (${shift > 0 ? '+' : ''}${shift}d)`;
+      });
+
+      this._updateOrCreateChart('_chartUtc', utcCanvas, utcLabels, data, unit, chartLabel, 'Time (UTC)');
+      this._updateOrCreateChart('_chartLocal', localCanvas, localLabels, data, unit, chartLabel, `Time (${this.tzLabel})`);
+    },
+
     showHourTooltip(event, h) {
       this.tooltip.visible = true;
       this.tooltip.x = event.clientX + 12;
       this.tooltip.y = event.clientY - 40;
-      this.tooltip.date = h.hour + ':00 - ' + h.hour + ':59';
+      if (this.showLocalTime) {
+        const d = new Date(0);
+        d.setUTCHours(h.hour);
+        const lh = d.getHours();
+        this.tooltip.date = `${h.hour}:00-${h.hour}:59 UTC / ${lh}:00-${lh}:59 ${this.tzLabel}`;
+      } else {
+        this.tooltip.date = `${h.hour}:00 - ${h.hour}:59 (UTC)`;
+      }
       this.tooltip.name = '';
       this.tooltip.status = h.status;
       this.tooltip.uptime = null;

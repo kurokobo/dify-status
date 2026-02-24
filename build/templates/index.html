@@ -13,7 +13,7 @@
     <header>
       <h1>{{ site_title }}</h1>
       <p class="last-checked" x-show="summary.last_checked">
-        Last checked: <span x-text="formatTimestamp(summary.last_checked)"></span>
+        Last checked: <span x-text="formatTimestamp(summary.last_checked) + (localTimeLabel(summary.last_checked) ? ' (' + localTimeLabel(summary.last_checked) + ')' : '')"></span>
       </p>
     </header>
 
