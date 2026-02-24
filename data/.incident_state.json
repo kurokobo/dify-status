@@ -2,9 +2,9 @@
   "web_ui": "up",
   "api": "up",
   "sandbox": "up",
-  "plugin": "down",
+  "plugin": "up",
   "retrieve": "up",
-  "indexing_pro": "up",
+  "indexing_pro": "down",
   "webhook_pro": "up",
   "indexing_free": "up",
   "webhook_free": "up"
