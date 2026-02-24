@@ -14,11 +14,11 @@ An unofficial, independently operated status page for [Dify Cloud](https://cloud
 | `api` | API | POST chat-messages (Start + Answer flow), expect body contains `pong` |
 | `sandbox` | Sandbox | POST chat-messages (Start + Template + Answer flow), expect body contains `pong from sandbox`. Depends on API. |
 | `plugin` | Plugin | POST chat-messages (Start + LLM with Fake Models + Answer flow), expect body contains `pong from plugin`. Depends on API. |
-| `indexing_free` | Knowledge Indexing (Free Plan) | Upload a small document on the Free (Sandbox) plan, verify indexing queue processes it. Two-cycle check (~30 min interval). |
-| `indexing_pro` | Knowledge Indexing (Pro Plan) | Upload a small document on the Pro plan, verify indexing queue processes it. Two-cycle check (every cycle). May stop after July 2026. |
+| `indexing_free` | Knowledge Indexing (Free Plan) | Upload a small document on the Free (Sandbox) plan, verify indexing queue processes it. |
+| `indexing_pro` | Knowledge Indexing (Pro Plan) | Upload a small document on the Pro plan, verify indexing queue processes it. May stop working due to the subscription period ending. |
 | `retrieve` | Knowledge Retrieval | POST a semantic search query to a pre-built High-Quality knowledge base, verify the vector DB responds with a `records` field. |
-| `webhook_free` | Webhook Trigger (Free Plan) | Trigger a workflow via webhook on the Free plan, verify it is processed. Two-cycle check (~30 min interval). |
-| `webhook_pro` | Webhook Trigger (Pro Plan) | Trigger a workflow via webhook on the Pro plan, verify it is processed. Two-cycle check (every cycle). May stop after July 2026. |
+| `webhook_free` | Webhook Trigger (Free Plan) | Trigger a workflow via webhook on the Free plan, verify it is processed. |
+| `webhook_pro` | Webhook Trigger (Pro Plan) | Trigger a workflow via webhook on the Pro plan, verify it is processed. May stop working due to the subscription period ending. |
 
 ## Notifications
 

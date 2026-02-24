@@ -4,7 +4,7 @@ import json
 import os
 import time
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -19,19 +19,17 @@ class WebhookCheck(BaseCheck):
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
         self.trigger_url: str = self.params["trigger_url"]
-        self.trigger_token_env: str = self.params["trigger_token_env"]
         self.base_url: str = self.params["base_url"].rstrip("/")
-        self.api_key_env: str = self.params["api_key_env"]
         self.timeout: int = self.params.get("timeout", 30)
-        self.interval_minutes: int = self.params.get("interval_minutes", 0)
+        self.accounts: list[dict[str, str]] = self.params["accounts"]
         self._state_file = STATE_DIR / f"{self.check_id}.json"
 
-    def _trigger_full_url(self) -> str:
-        token = os.environ.get(self.trigger_token_env, "")
+    def _trigger_full_url(self, account: dict[str, str]) -> str:
+        token = os.environ.get(account["trigger_token_env"], "")
         return f"{self.trigger_url}/{token}"
 
-    def _api_headers(self) -> dict[str, str]:
-        api_key = os.environ.get(self.api_key_env, "")
+    def _api_headers(self, account: dict[str, str]) -> dict[str, str]:
+        api_key = os.environ.get(account["api_key_env"], "")
         return {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
@@ -58,24 +56,28 @@ class WebhookCheck(BaseCheck):
         # Step 1: Check previous trigger if state exists
         state = self._load_state()
         if state is not None:
-            if self.interval_minutes > 0:
-                triggered_at = datetime.fromisoformat(state["triggered_at"])
-                min_wait = timedelta(minutes=self.interval_minutes)
-                if datetime.now(timezone.utc) - triggered_at < min_wait:
-                    return []
-
-            result = await self._check_previous(state)
+            # account_index missing in old state files → default to 0 (backward compat)
+            account_index = state.get("account_index", 0)
+            account = self.accounts[account_index % len(self.accounts)]
+            result = await self._check_previous(state, account)
             results.append(result)
             self._clear_state()
 
-        # Step 2: Trigger new webhook
-        trigger_result = await self._trigger_webhook()
+        # Step 2: Trigger new webhook using next account
+        if state is not None:
+            next_index = (state.get("account_index", 0) + 1) % len(self.accounts)
+        else:
+            next_index = 0
+
+        trigger_result = await self._trigger_webhook(next_index)
         if trigger_result is not None:
             results.append(trigger_result)
 
         return results
 
-    async def _check_previous(self, state: dict[str, Any]) -> CheckResult:
+    async def _check_previous(
+        self, state: dict[str, Any], account: dict[str, str]
+    ) -> CheckResult:
         trigger_id = state["trigger_id"]
         triggered_at = state["triggered_at"]
 
@@ -85,7 +87,7 @@ class WebhookCheck(BaseCheck):
             ) as client:
                 # Search logs by trigger_id using keyword parameter (1 API call)
                 url = f"{self.base_url}/workflows/logs?keyword={trigger_id}&limit=1"
-                resp = await client.get(url, headers=self._api_headers())
+                resp = await client.get(url, headers=self._api_headers(account))
 
                 if resp.status_code != 200:
                     return self._result(
@@ -134,8 +136,9 @@ class WebhookCheck(BaseCheck):
             return self._result(Status.DOWN, -1, f"Error checking status: {exc}",
                                 timestamp=triggered_at)
 
-    async def _trigger_webhook(self) -> CheckResult | None:
+    async def _trigger_webhook(self, account_index: int) -> CheckResult | None:
         """Trigger the webhook. Returns a CheckResult only on failure."""
+        account = self.accounts[account_index]
         trigger_id = f"status-check-{uuid.uuid4().hex[:12]}"
         now = datetime.now(timezone.utc)
 
@@ -150,7 +153,7 @@ class WebhookCheck(BaseCheck):
             ) as client:
                 start = time.monotonic()
                 resp = await client.post(
-                    self._trigger_full_url(),
+                    self._trigger_full_url(account),
                     json=body,
                     headers={"Content-Type": "application/json"},
                 )
@@ -165,6 +168,7 @@ class WebhookCheck(BaseCheck):
                 self._save_state({
                     "trigger_id": trigger_id,
                     "triggered_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    "account_index": account_index,
                 })
                 return None  # Success — result will be checked next cycle
 
