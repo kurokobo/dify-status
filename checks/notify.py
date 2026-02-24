@@ -24,8 +24,9 @@ def load_config() -> dict:
 def load_state() -> dict[str, dict]:
     """Load previous check states.
 
-    Returns {check_id: {"consecutive_failures": int, "incident_reported": bool}}.
-    Migrates old format {check_id: "up"|"degraded"|"down"} automatically.
+    Returns {check_id: {"consecutive_failures": int, "incident_reported": bool,
+    "last_timestamp": str}}.
+    Migrates old formats automatically.
     """
     if not STATE_FILE.exists():
         return {}
@@ -38,8 +39,11 @@ def load_state() -> dict[str, dict]:
             migrated[cid] = {
                 "consecutive_failures": 0 if val == "up" else 1,
                 "incident_reported": val != "up",
+                "last_timestamp": "",
             }
         else:
+            if "last_timestamp" not in val:
+                val["last_timestamp"] = ""
             migrated[cid] = val
     return migrated
 
@@ -126,9 +130,20 @@ def run_notify() -> None:
     new_state: dict[str, dict] = {}
     for cid, record in latest.items():
         current_status = record["status"]
-        prev = prev_state.get(cid, {"consecutive_failures": 0, "incident_reported": False})
+        current_ts = record["timestamp"]
+        prev = prev_state.get(cid, {"consecutive_failures": 0, "incident_reported": False, "last_timestamp": ""})
         consecutive_failures = prev["consecutive_failures"]
         incident_reported = prev["incident_reported"]
+        last_timestamp = prev.get("last_timestamp", "")
+
+        # Skip if we already processed this exact record
+        if current_ts == last_timestamp:
+            new_state[cid] = {
+                "consecutive_failures": consecutive_failures,
+                "incident_reported": incident_reported,
+                "last_timestamp": last_timestamp,
+            }
+            continue
 
         if not is_healthy(current_status):
             consecutive_failures += 1
@@ -147,6 +162,7 @@ def run_notify() -> None:
         new_state[cid] = {
             "consecutive_failures": consecutive_failures,
             "incident_reported": incident_reported,
+            "last_timestamp": current_ts,
         }
 
     # Preserve state for checks not present in latest results
