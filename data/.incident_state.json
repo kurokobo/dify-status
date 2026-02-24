@@ -1,11 +1,38 @@
 {
-  "web_ui": "up",
-  "api": "up",
-  "sandbox": "up",
-  "plugin": "up",
-  "retrieve": "up",
-  "indexing_pro": "up",
-  "webhook_pro": "up",
-  "indexing_free": "up",
-  "webhook_free": "up"
+  "web_ui": {
+    "consecutive_failures": 0,
+    "incident_reported": false
+  },
+  "api": {
+    "consecutive_failures": 0,
+    "incident_reported": false
+  },
+  "sandbox": {
+    "consecutive_failures": 0,
+    "incident_reported": false
+  },
+  "plugin": {
+    "consecutive_failures": 0,
+    "incident_reported": false
+  },
+  "indexing_free": {
+    "consecutive_failures": 0,
+    "incident_reported": false
+  },
+  "indexing_pro": {
+    "consecutive_failures": 0,
+    "incident_reported": false
+  },
+  "retrieve": {
+    "consecutive_failures": 0,
+    "incident_reported": false
+  },
+  "webhook_free": {
+    "consecutive_failures": 0,
+    "incident_reported": false
+  },
+  "webhook_pro": {
+    "consecutive_failures": 0,
+    "incident_reported": false
+  }
 }
