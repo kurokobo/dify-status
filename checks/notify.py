@@ -69,6 +69,8 @@ def get_latest_results(data_dir: Path) -> dict[str, dict]:
             if not line:
                 continue
             record = json.loads(line)
+            if record.get("provisional", False):
+                continue
             cid = record["check_id"]
             # Keep the latest by timestamp
             if cid not in latest or record["timestamp"] > latest[cid]["timestamp"]:

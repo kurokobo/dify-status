@@ -22,7 +22,7 @@ def load_config() -> dict:
 
 
 def load_all_data(data_dir: Path) -> list[dict]:
-    """Load all JSONL records sorted by timestamp."""
+    """Load all JSONL records sorted by timestamp, excluding superseded provisional records."""
     records: list[dict] = []
     for jsonl_file in sorted(data_dir.rglob("*.jsonl")):
         with open(jsonl_file, encoding="utf-8") as f:
@@ -30,7 +30,19 @@ def load_all_data(data_dir: Path) -> list[dict]:
                 line = line.strip()
                 if line:
                     records.append(json.loads(line))
-    return records
+
+    # Remove provisional records that have been superseded by a confirmed record
+    # with the same (check_id, timestamp).
+    confirmed_keys = {
+        (r["check_id"], r["timestamp"])
+        for r in records
+        if not r.get("provisional", False)
+    }
+    return [
+        r for r in records
+        if not r.get("provisional", False)
+        or (r["check_id"], r["timestamp"]) not in confirmed_keys
+    ]
 
 
 def compute_day_status(statuses: list[str]) -> str:

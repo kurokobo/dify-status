@@ -20,6 +20,7 @@ class CheckResult:
     status: Status
     response_time_ms: int
     message: str
+    provisional: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)

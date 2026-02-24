@@ -66,9 +66,7 @@ class KnowledgeCheck(BaseCheck):
         else:
             next_index = 0
 
-        upload_result = await self._upload_document(next_index)
-        if upload_result is not None:
-            results.append(upload_result)
+        results.append(await self._upload_document(next_index))
 
         return results
 
@@ -140,12 +138,13 @@ class KnowledgeCheck(BaseCheck):
             return self._result(Status.DOWN, -1, f"Error checking status: {exc}",
                                 timestamp=uploaded_at)
 
-    async def _upload_document(self, account_index: int) -> CheckResult | None:
-        """Upload a new document. Returns a CheckResult only on failure (None = success)."""
+    async def _upload_document(self, account_index: int) -> CheckResult:
+        """Upload a new document. Returns a provisional UP result on success, or DOWN on failure."""
         account = self.accounts[account_index]
         dataset_id = self._dataset_id(account)
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
-        doc_name = f"status-check-{timestamp}"
+        now = datetime.now(timezone.utc)
+        uploaded_at = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+        doc_name = f"status-check-{now.strftime('%Y%m%d-%H%M%S')}"
 
         random_text = str(uuid.uuid4()).replace("-", " ")
 
@@ -183,10 +182,16 @@ class KnowledgeCheck(BaseCheck):
                 self._save_state({
                     "document_id": document_id,
                     "batch_id": batch_id,
-                    "uploaded_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    "uploaded_at": uploaded_at,
                     "account_index": account_index,
                 })
-                return None  # Success — no result to report yet
+                result = self._result(
+                    Status.UP, -1,
+                    "Document uploaded. Awaiting next cycle to verify indexing status.",
+                    timestamp=uploaded_at,
+                )
+                result.provisional = True
+                return result
 
         except httpx.TimeoutException:
             return self._result(Status.DOWN, -1, "Upload timeout")
