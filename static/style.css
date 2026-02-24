@@ -579,5 +579,6 @@ footer {
 
 .bmc-btn {
   display: inline-block;
+  height: 45px;
   flex-shrink: 0;
 }
