@@ -8,13 +8,12 @@ concurrency:
   group: status-check
   cancel-in-progress: false
 
-permissions:
-  contents: write
-  issues: write
-
 jobs:
   check:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
     steps:
       - uses: actions/checkout@v4
 
@@ -60,3 +59,37 @@ jobs:
             echo "Retry $i..."
             sleep 5
           done
+
+  build:
+    needs: check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Build site
+        run: uv run python -m build.build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

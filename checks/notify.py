@@ -13,21 +13,38 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 STATE_FILE = ROOT / "data" / ".incident_state.json"
 
+DEFAULT_FAILURE_THRESHOLD = 2
+
 
 def load_config() -> dict:
     with open(ROOT / "config.yaml", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
-def load_state() -> dict[str, str]:
-    """Load previous check states. Returns {check_id: "up"|"degraded"|"down"}."""
-    if STATE_FILE.exists():
-        with open(STATE_FILE, encoding="utf-8") as f:
-            return json.load(f)
-    return {}
+def load_state() -> dict[str, dict]:
+    """Load previous check states.
+
+    Returns {check_id: {"consecutive_failures": int, "incident_reported": bool}}.
+    Migrates old format {check_id: "up"|"degraded"|"down"} automatically.
+    """
+    if not STATE_FILE.exists():
+        return {}
+    with open(STATE_FILE, encoding="utf-8") as f:
+        raw = json.load(f)
+    migrated = {}
+    for cid, val in raw.items():
+        if isinstance(val, str):
+            # Old format: val is a status string
+            migrated[cid] = {
+                "consecutive_failures": 0 if val == "up" else 1,
+                "incident_reported": val != "up",
+            }
+        else:
+            migrated[cid] = val
+    return migrated
 
 
-def save_state(state: dict[str, str]) -> None:
+def save_state(state: dict[str, dict]) -> None:
     STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(STATE_FILE, "w", encoding="utf-8") as f:
         json.dump(state, f, ensure_ascii=False, indent=2)
@@ -91,6 +108,7 @@ def run_notify() -> None:
         print("Notification not configured (missing github_repo or issue_number in settings.notification)")
         return
 
+    failure_threshold = notification.get("failure_threshold", DEFAULT_FAILURE_THRESHOLD)
     check_names = {c["id"]: c["name"] for c in config["checks"]}
     prev_state = load_state()
     latest = get_latest_results(data_dir)
@@ -101,36 +119,51 @@ def run_notify() -> None:
 
     incidents: list[str] = []
     recoveries: list[str] = []
+    incident_cids: set[str] = set()
 
-    new_state = dict(prev_state)
+    new_state: dict[str, dict] = {}
     for cid, record in latest.items():
         current_status = record["status"]
-        prev_status = prev_state.get(cid)
-        new_state[cid] = current_status
+        prev = prev_state.get(cid, {"consecutive_failures": 0, "incident_reported": False})
+        consecutive_failures = prev["consecutive_failures"]
+        incident_reported = prev["incident_reported"]
 
-        if prev_status is None:
-            # First time seeing this check, no transition
-            continue
+        if not is_healthy(current_status):
+            consecutive_failures += 1
+            if consecutive_failures >= failure_threshold and not incident_reported:
+                name = check_names.get(cid, cid)
+                incidents.append(f"- **{name}** — {current_status} ({record.get('message', '')})")
+                incident_cids.add(cid)
+                incident_reported = True
+        else:
+            if incident_reported:
+                name = check_names.get(cid, cid)
+                recoveries.append(f"- **{name}**")
+            consecutive_failures = 0
+            incident_reported = False
 
-        was_healthy = is_healthy(prev_status)
-        now_healthy = is_healthy(current_status)
+        new_state[cid] = {
+            "consecutive_failures": consecutive_failures,
+            "incident_reported": incident_reported,
+        }
 
-        if was_healthy and not now_healthy:
-            name = check_names.get(cid, cid)
-            incidents.append(f"- **{name}** — {current_status} ({record.get('message', '')})")
-        elif not was_healthy and now_healthy:
-            name = check_names.get(cid, cid)
-            recoveries.append(f"- **{name}**")
+    # Preserve state for checks not present in latest results
+    for cid, val in prev_state.items():
+        if cid not in new_state:
+            new_state[cid] = val
 
     save_state(new_state)
 
-    # Checks still unhealthy after this run
-    ongoing = [check_names.get(cid, cid) for cid, status in new_state.items() if not is_healthy(status)]
+    # Checks with an ongoing (already-reported) incident, excluding newly reported ones
+    ongoing = [
+        check_names.get(cid, cid)
+        for cid, s in new_state.items()
+        if s["incident_reported"] and cid not in incident_cids
+    ]
 
     now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 
     if incidents and recoveries:
-        # Both new incidents and recoveries in the same run: single combined comment
         lines = [f"📊 **Status Update** — {now_str}", "", "🔴 New incidents:"] + incidents + ["", "🟢 Recovered:"] + recoveries
         if ongoing:
             lines += ["", "🟡 Ongoing issues:"] + [f"- **{name}**" for name in ongoing]
@@ -139,6 +172,8 @@ def run_notify() -> None:
         post_issue_comment(repo, issue_number, body)
     elif incidents:
         body = f"🔴 **Incident detected** — {now_str}\n\n" + "\n".join(incidents)
+        if ongoing:
+            body += "\n\n🟡 Ongoing issues:\n" + "\n".join(f"- **{name}**" for name in ongoing)
         print(f"Posting incident comment:\n{body}")
         post_issue_comment(repo, issue_number, body)
     elif recoveries:
