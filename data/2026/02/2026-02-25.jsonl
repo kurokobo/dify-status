@@ -41,3 +41,14 @@
 {"check_id": "indexing_pro", "timestamp": "2026-02-25T00:45:36Z", "status": "up", "response_time_ms": -1, "message": "Document uploaded. Awaiting next cycle to verify indexing status.", "provisional": true}
 {"check_id": "webhook_free", "timestamp": "2026-02-25T00:30:55Z", "status": "up", "response_time_ms": 95, "message": "Webhook processed in 0.1s", "provisional": false}
 {"check_id": "webhook_pro", "timestamp": "2026-02-25T00:30:56Z", "status": "up", "response_time_ms": 104, "message": "Webhook processed in 0.1s", "provisional": false}
+{"check_id": "web_ui", "timestamp": "2026-02-25T01:00:48Z", "status": "up", "response_time_ms": 1119, "message": "HTTP 200", "provisional": false}
+{"check_id": "api", "timestamp": "2026-02-25T01:01:23Z", "status": "up", "response_time_ms": 35409, "message": "HTTP 200, body contains 'pong'", "provisional": false}
+{"check_id": "sandbox", "timestamp": "2026-02-25T01:01:59Z", "status": "up", "response_time_ms": 35845, "message": "HTTP 200, body contains 'pong from sandbox'", "provisional": false}
+{"check_id": "plugin", "timestamp": "2026-02-25T01:02:59Z", "status": "down", "response_time_ms": -1, "message": "Timeout", "provisional": false}
+{"check_id": "retrieve", "timestamp": "2026-02-25T01:03:29Z", "status": "down", "response_time_ms": -1, "message": "Timeout", "provisional": false}
+{"check_id": "indexing_free", "timestamp": "2026-02-25T00:45:33Z", "status": "up", "response_time_ms": 1000, "message": "Indexing completed in 1s", "provisional": false}
+{"check_id": "indexing_free", "timestamp": "2026-02-25T01:03:47Z", "status": "down", "response_time_ms": -1, "message": "Upload failed: HTTP 502", "provisional": false}
+{"check_id": "indexing_pro", "timestamp": "2026-02-25T00:45:36Z", "status": "up", "response_time_ms": 0, "message": "Indexing completed in 0s", "provisional": false}
+{"check_id": "indexing_pro", "timestamp": "2026-02-25T01:03:51Z", "status": "up", "response_time_ms": -1, "message": "Document uploaded. Awaiting next cycle to verify indexing status.", "provisional": true}
+{"check_id": "webhook_free", "timestamp": "2026-02-25T00:45:41Z", "status": "up", "response_time_ms": 107, "message": "Webhook processed in 0.1s", "provisional": false}
+{"check_id": "webhook_pro", "timestamp": "2026-02-25T00:45:43Z", "status": "up", "response_time_ms": 120, "message": "Webhook processed in 0.1s", "provisional": false}
