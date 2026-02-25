@@ -195,6 +195,10 @@ h1 {
   height: 24px;
 }
 
+.grid-24 .cell-latest {
+  flex: 2;
+}
+
 .hour-labels {
   display: flex;
   justify-content: space-between;
@@ -524,6 +528,28 @@ h1 {
   flex: 2;
   margin-left: 4px;
   border-radius: 2px;
+}
+
+/* Section heading row with toggle */
+.section-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.section-heading-row .section-heading {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.tz-switcher-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.5rem;
 }
 
 /* Section heading for 90-day history area */

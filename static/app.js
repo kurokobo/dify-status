@@ -41,9 +41,14 @@ function tooltipMixin() {
       this.tooltip.visible = true;
       this.tooltip.x = event.clientX + 12;
       this.tooltip.y = event.clientY - 40;
-      this.tooltip.date = timestamp
-        ? 'Latest \u00b7 ' + timestamp.substring(0, 16).replace('T', ' ') + ' UTC'
-        : 'Latest';
+      if (timestamp) {
+        const d = new Date(timestamp);
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mm = String(d.getMinutes()).padStart(2, '0');
+        this.tooltip.date = `Latest \u00b7 ${hh}:${mm} (${_computeTzLabel()})`;
+      } else {
+        this.tooltip.date = 'Latest';
+      }
       this.tooltip.name = name || '';
       this.tooltip.status = status;
       this.tooltip.uptime = null;
@@ -52,23 +57,12 @@ function tooltipMixin() {
 
     formatTimestamp(ts) {
       if (!ts) return '';
-      return ts.replace('T', ' ').replace('Z', ' UTC');
-    },
-
-    localTimeLabel(ts) {
-      if (!ts) return '';
+      const utc = ts.substring(0, 16).replace('T', ' ') + ' UTC';
       const offset = -new Date().getTimezoneOffset();
-      if (offset === 0) return '';
-      const abs = Math.abs(offset);
-      const h = Math.floor(abs / 60);
-      const m = abs % 60;
-      const sign = offset >= 0 ? '+' : '-';
-      const tz = m > 0
-        ? `UTC${sign}${h}:${String(m).padStart(2, '0')}`
-        : `UTC${sign}${h}`;
+      if (offset === 0) return utc;
       const d = new Date(ts);
       const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-      return `${timeStr} ${tz}`;
+      return `${utc} (${timeStr} ${_computeTzLabel()})`;
     },
   };
 }
@@ -77,16 +71,193 @@ function statusApp() {
   return {
     summary: SUMMARY_DATA,
     expandedChecks: {},
+    viewMode: '90day',
+    hourlyChecks: [],
+    overallHourly: [],
+    loadingHourly: false,
+    _24hLoaded: false,
+    show24hLocalTime: new Date().getTimezoneOffset() !== 0,
+    tzLabel: _computeTzLabel(),
     ...tooltipMixin(),
 
     toggleInfo(checkId) {
       this.expandedChecks[checkId] = !this.expandedChecks[checkId];
+    },
+
+    async switchView(mode) {
+      this.viewMode = mode;
+      if (mode === '24h' && !this._24hLoaded) {
+        await this.load24hData();
+      }
+    },
+
+    async load24hData() {
+      this.loadingHourly = true;
+      const now = new Date();
+      const nowMs = now.getTime();
+      const cutoffMs = nowMs - 24 * 3600 * 1000;
+      const todayUtc = now.toISOString().substring(0, 10);
+      const yesterdayUtc = new Date(nowMs - 86400000).toISOString().substring(0, 10);
+
+      const fetchPromises = [];
+      for (const check of this.summary.checks) {
+        for (const dateStr of [yesterdayUtc, todayUtc]) {
+          fetchPromises.push(
+            fetch(`data/${check.id}/${dateStr}.json`)
+              .then(r => r.ok ? r.json() : [])
+              .catch(() => [])
+              .then(data => ({ checkId: check.id, records: data }))
+          );
+        }
+      }
+      const results = await Promise.all(fetchPromises);
+
+      const recordsByCheck = {};
+      for (const { checkId, records } of results) {
+        if (!recordsByCheck[checkId]) recordsByCheck[checkId] = [];
+        recordsByCheck[checkId].push(...records);
+      }
+
+      const allCheckHourly = [];
+      for (const check of this.summary.checks) {
+        const allRecords = recordsByCheck[check.id] || [];
+        const recent = allRecords.filter(r => new Date(r.timestamp).getTime() >= cutoffMs);
+        const hours = this._compute24hBuckets(recent, now);
+        allCheckHourly.push({
+          id: check.id,
+          name: check.name,
+          description: check.description,
+          note: check.note,
+          current_status: check.current_status,
+          latest_timestamp: check.latest_timestamp,
+          latest_response_ms: check.latest_response_ms,
+          hours,
+        });
+      }
+
+      const overallHours = [];
+      for (let i = 0; i < 24; i++) {
+        const checkStatuses = allCheckHourly
+          .map(c => c.hours[i].status)
+          .filter(s => s !== 'nodata');
+        let status = 'nodata';
+        if (checkStatuses.length > 0) {
+          if (checkStatuses.some(s => s === 'down')) status = 'down';
+          else if (checkStatuses.some(s => s === 'degraded')) status = 'degraded';
+          else status = 'up';
+        }
+        const hourDate = new Date(nowMs - (23 - i) * 3600000);
+        overallHours.push({
+          localHour: hourDate.getHours(),
+          utcHour: hourDate.getUTCHours(),
+          isYesterdayLocal: hourDate.getDate() !== now.getDate() || hourDate.getMonth() !== now.getMonth(),
+          isYesterdayUtc: hourDate.getUTCDate() !== now.getUTCDate() || hourDate.getUTCMonth() !== now.getUTCMonth(),
+          status,
+          count: checkStatuses.length,
+        });
+      }
+
+      this.hourlyChecks = allCheckHourly;
+      this.overallHourly = overallHours;
+      this.loadingHourly = false;
+      this._24hLoaded = true;
+    },
+
+    _compute24hBuckets(records, now) {
+      const nowMs = now.getTime();
+      const hours = [];
+      for (let i = 0; i < 24; i++) {
+        const hourDate = new Date(nowMs - (23 - i) * 3600000);
+        hours.push({
+          localHour: hourDate.getHours(),
+          utcHour: hourDate.getUTCHours(),
+          isYesterdayLocal: hourDate.getDate() !== now.getDate() || hourDate.getMonth() !== now.getMonth(),
+          isYesterdayUtc: hourDate.getUTCDate() !== now.getUTCDate() || hourDate.getUTCMonth() !== now.getUTCMonth(),
+          status: 'nodata',
+          count: 0,
+          _statuses: [],
+        });
+      }
+      for (const r of records) {
+        const rTime = new Date(r.timestamp);
+        const hoursAgo = Math.floor((nowMs - rTime.getTime()) / 3600000);
+        if (hoursAgo >= 0 && hoursAgo < 24) {
+          const idx = 23 - hoursAgo;
+          hours[idx].count++;
+          hours[idx]._statuses.push(r.status);
+        }
+      }
+      for (const bucket of hours) {
+        if (bucket.count === 0) continue;
+        const statuses = bucket._statuses;
+        const downCount = statuses.filter(s => s === 'down').length;
+        if (downCount === 0) {
+          bucket.status = statuses.some(s => s === 'degraded') ? 'degraded' : 'up';
+        } else if (downCount / statuses.length >= 0.5) {
+          bucket.status = 'down';
+        } else {
+          bucket.status = 'degraded';
+        }
+        delete bucket._statuses;
+      }
+      return hours;
+    },
+
+    hourLabels24h() {
+      if (!this.overallHourly || this.overallHourly.length === 0) return [];
+      return [0, 6, 12, 18, 23].map(idx => {
+        const h = this.overallHourly[idx];
+        const isLocal = this.show24hLocalTime;
+        const isYesterday = isLocal ? h.isYesterdayLocal : h.isYesterdayUtc;
+        return {
+          key: idx,
+          label: String(isLocal ? h.localHour : h.utcHour).padStart(2, '0') + ':00',
+          shift: isYesterday ? -1 : 0,
+        };
+      });
+    },
+
+    show24hLatestTooltip(event, status, name, timestamp, responseMs) {
+      this.tooltip.visible = true;
+      this.tooltip.x = event.clientX + 12;
+      this.tooltip.y = event.clientY - 40;
+      if (timestamp) {
+        if (this.show24hLocalTime) {
+          const d = new Date(timestamp);
+          const hh = String(d.getHours()).padStart(2, '0');
+          const mm = String(d.getMinutes()).padStart(2, '0');
+          this.tooltip.date = `Latest \u00b7 ${hh}:${mm} (${_computeTzLabel()})`;
+        } else {
+          this.tooltip.date = 'Latest \u00b7 ' + timestamp.substring(0, 16).replace('T', ' ') + ' UTC';
+        }
+      } else {
+        this.tooltip.date = 'Latest';
+      }
+      this.tooltip.name = name || '';
+      this.tooltip.status = status;
+      this.tooltip.uptime = null;
+      this.tooltip.avgResp = (responseMs !== undefined && responseMs >= 0) ? responseMs : -1;
+    },
+
+    show24hTooltip(event, h, name) {
+      this.tooltip.visible = true;
+      this.tooltip.x = event.clientX + 12;
+      this.tooltip.y = event.clientY - 40;
+      const hour = this.show24hLocalTime ? h.localHour : h.utcHour;
+      const hStr = String(hour).padStart(2, '0');
+      const tz = this.show24hLocalTime ? _computeTzLabel() : 'UTC';
+      this.tooltip.date = `${hStr}:00\u2013${hStr}:59 (${tz})`;
+      this.tooltip.name = name || '';
+      this.tooltip.status = h.status;
+      this.tooltip.uptime = null;
+      this.tooltip.avgResp = -1;
     },
   };
 }
 
 function _computeTzLabel() {
   const offset = -new Date().getTimezoneOffset();
+  if (offset === 0) return 'UTC';
   const abs = Math.abs(offset);
   const h = Math.floor(abs / 60);
   const m = abs % 60;
@@ -98,13 +269,13 @@ function _computeTzLabel() {
 
 function _computeHourLabels(showLocal) {
   return [0, 6, 12, 18, 23].map(utcH => {
-    if (!showLocal) return { key: utcH, label: String(utcH), shift: 0 };
+    if (!showLocal) return { key: utcH, label: utcH + ':00', shift: 0 };
     const d = new Date(0);
     d.setUTCHours(utcH);
     const localHour = d.getHours();
     // new Date(0) is UTC Jan 1; local date() of 1=same, 2=+1d, 31=−1d
     const shift = d.getDate() === 1 ? 0 : (d.getDate() === 2 ? 1 : -1);
-    return { key: utcH, label: String(localHour), shift };
+    return { key: utcH, label: localHour + ':00', shift };
   });
 }
 
@@ -118,9 +289,9 @@ function detailApp() {
     loading: false,
     _chartUtc: null,
     _chartLocal: null,
-    showLocalTime: false,
+    showLocalTime: new Date().getTimezoneOffset() !== 0,
     tzLabel: _computeTzLabel(),
-    hourLabelsDisplay: _computeHourLabels(false),
+    hourLabelsDisplay: _computeHourLabels(new Date().getTimezoneOffset() !== 0),
     ...tooltipMixin(),
 
     _availableDates() {
