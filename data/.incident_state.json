@@ -2,46 +2,46 @@
   "web_ui": {
     "consecutive_failures": 0,
     "incident_reported": false,
-    "last_timestamp": "2026-02-25T02:30:45Z"
+    "last_timestamp": "2026-02-25T02:45:34Z"
   },
   "api": {
     "consecutive_failures": 0,
     "incident_reported": false,
-    "last_timestamp": "2026-02-25T02:30:54Z"
+    "last_timestamp": "2026-02-25T02:45:35Z"
   },
   "sandbox": {
     "consecutive_failures": 0,
     "incident_reported": false,
-    "last_timestamp": "2026-02-25T02:30:56Z"
+    "last_timestamp": "2026-02-25T02:45:35Z"
   },
   "plugin": {
     "consecutive_failures": 0,
     "incident_reported": false,
-    "last_timestamp": "2026-02-25T02:31:01Z"
+    "last_timestamp": "2026-02-25T02:45:39Z"
   },
   "retrieve": {
     "consecutive_failures": 0,
     "incident_reported": false,
-    "last_timestamp": "2026-02-25T02:31:11Z"
+    "last_timestamp": "2026-02-25T02:45:42Z"
   },
   "indexing_free": {
     "consecutive_failures": 0,
     "incident_reported": false,
-    "last_timestamp": "2026-02-25T02:15:34Z"
+    "last_timestamp": "2026-02-25T02:31:12Z"
   },
   "indexing_pro": {
-    "consecutive_failures": 0,
+    "consecutive_failures": 1,
     "incident_reported": false,
-    "last_timestamp": "2026-02-25T02:15:36Z"
+    "last_timestamp": "2026-02-25T02:46:20Z"
   },
   "webhook_free": {
     "consecutive_failures": 0,
     "incident_reported": false,
-    "last_timestamp": "2026-02-25T02:15:49Z"
+    "last_timestamp": "2026-02-25T02:31:17Z"
   },
   "webhook_pro": {
     "consecutive_failures": 0,
     "incident_reported": false,
-    "last_timestamp": "2026-02-25T02:15:51Z"
+    "last_timestamp": "2026-02-25T02:31:18Z"
   }
 }
