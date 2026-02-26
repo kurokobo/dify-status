@@ -463,6 +463,7 @@ function detailApp() {
     dayRecords: [],
     hourlyStatus: [],
     loading: false,
+    hasLoadedData: false,
     _chartUtc: null,
     _chartLocal: null,
     showLocalTime: new Date().getTimezoneOffset() !== 0,
@@ -544,27 +545,39 @@ function detailApp() {
       });
     },
 
+    _destroyCharts() {
+      if (this._chartUtc) { this._chartUtc.destroy(); this._chartUtc = null; }
+      if (this._chartLocal) { this._chartLocal.destroy(); this._chartLocal = null; }
+    },
+
     selectDate(date) {
       if (this.selectedDate === date) return;
+      this._destroyCharts();
       this.selectedDate = date;
       this.loading = true;
-      this.dayRecords = [];
-      this.hourlyStatus = [];
 
-      fetch(`../data/${CHECK_ID}/${date}.json`)
+      if (this._fetchController) this._fetchController.abort();
+      const controller = new AbortController();
+      this._fetchController = controller;
+
+      fetch(`../data/${CHECK_ID}/${date}.json`, { signal: controller.signal })
         .then(r => {
           if (!r.ok) throw new Error(r.status);
           return r.json();
         })
         .then(data => {
+          if (controller.signal.aborted) return;
           this.dayRecords = [...data].reverse();
           this.hourlyStatus = this.computeHourlyStatus(data);
+          this.hasLoadedData = data.length > 0;
           this.loading = false;
           this.$nextTick(() => this.renderChart(data));
         })
-        .catch(() => {
+        .catch(err => {
+          if (err.name === 'AbortError') return;
           this.dayRecords = [];
           this.hourlyStatus = [];
+          this.hasLoadedData = false;
           this.loading = false;
         });
     },
@@ -599,13 +612,6 @@ function detailApp() {
     },
 
     _updateOrCreateChart(key, canvas, labels, data, unit, chartLabel, xTitle) {
-      if (this[key]) {
-        this[key].data.labels = labels;
-        this[key].data.datasets[0].data = data;
-        this[key].options.scales.x.title.text = xTitle;
-        this[key].update('none');
-        return;
-      }
       this[key] = new Chart(canvas, {
         type: 'line',
         data: {
@@ -622,6 +628,7 @@ function detailApp() {
           }],
         },
         options: {
+          animation: false,
           responsive: true,
           maintainAspectRatio: false,
           plugins: { legend: { display: false } },

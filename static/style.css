@@ -283,6 +283,13 @@ a.multiday-date:hover {
   opacity: 0;
   pointer-events: none;
 }
+.daily-content {
+  transition: opacity 0.15s ease;
+}
+.daily-content-loading {
+  opacity: 0.4;
+  pointer-events: none;
+}
 
 .section-subheading {
   font-size: 0.9rem;

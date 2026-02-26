@@ -73,66 +73,68 @@
             <h2 x-text="selectedDate ? 'Results for ' + selectedDate + ' (UTC)' : 'Click a day to view details'"></h2>
             <button class="day-nav-btn" :disabled="!nextDate()" @click="selectDate(nextDate())" aria-label="Next day">&rarr;</button>
           </div>
-          <div x-show="!loading && dayRecords.length > 0" class="tz-switcher">
+          <div x-show="hasLoadedData && dayRecords.length > 0" class="tz-switcher">
             <button :class="{ 'tz-active': !showLocalTime }" @click="showLocalTime = false">UTC</button>
             <button :class="{ 'tz-active': showLocalTime }" @click="showLocalTime = true" x-text="tzLabel"></button>
           </div>
         </div>
-        <div x-show="loading" class="loading">Loading...</div>
+        <div x-show="loading && !hasLoadedData" class="loading">Loading...</div>
 
-        <!-- Hourly status grid -->
-        <div x-show="!loading && dayRecords.length > 0">
-          <h3 class="section-subheading" x-text="'Hourly Status (' + (showLocalTime ? tzLabel : 'UTC') + ')'"></h3>
-          <div class="grid-24">
-            <template x-for="h in hourlyStatus" :key="h.hour">
-              <div class="grid-cell"
-                   :class="'cell-' + h.status"
-                   :title="h.hour + ':00 — ' + h.status + ' (' + h.count + ' checks)'"
-                   @mouseenter="showHourTooltip($event, h)"
-                   @mouseleave="hideTooltip()">
-              </div>
-            </template>
-          </div>
-          <div class="hour-labels">
-            <template x-for="item in hourLabelsDisplay" :key="item.key">
-              <span class="hour-label-item">
-                <span x-text="item.label"></span>
-                <span x-show="item.shift !== 0" x-text="item.shift > 0 ? '+1d' : '-1d'" class="hour-label-shift"></span>
-              </span>
-            </template>
-          </div>
-        </div>
-
-        <!-- Response time chart -->
-        <div x-show="!loading && dayRecords.length > 0" class="chart-container">
-          <h3 class="section-subheading">{% if check.type == 'knowledge' %}Indexing Time{% else %}Response Time{% endif %}</h3>
-          <div class="chart-canvas-area">
-            <canvas x-ref="responseChartUtc" :class="{ 'chart-inactive': showLocalTime }"></canvas>
-            <canvas x-ref="responseChartLocal" :class="{ 'chart-inactive': !showLocalTime }"></canvas>
-          </div>
-        </div>
-
-        <div x-show="!loading && dayRecords.length > 0">
-          <table class="results-table">
-            <thead>
-              <tr>
-                <th x-text="showLocalTime ? 'Time (' + tzLabel + ')' : 'Time (UTC)'"></th>
-                <th>Status</th>
-                <th>{% if check.type == 'knowledge' %}Indexing Time{% else %}Response Time{% endif %}</th>
-                <th>Message</th>
-              </tr>
-            </thead>
-            <tbody>
-              <template x-for="r in dayRecords" :key="r.timestamp">
-                <tr>
-                  <td x-text="formatDisplayTime(r.timestamp)"></td>
-                  <td><span class="check-status-badge" :class="'badge-' + r.status" x-text="r.status"></span></td>
-                  <td x-text="r.response_time_ms >= 0 ? formatTime(r.response_time_ms) : '-'"></td>
-                  <td x-text="r.message"></td>
-                </tr>
+        <div x-show="hasLoadedData && dayRecords.length > 0" class="daily-content" :class="{ 'daily-content-loading': loading }">
+          <!-- Hourly status grid -->
+          <div>
+            <h3 class="section-subheading" x-text="'Hourly Status (' + (showLocalTime ? tzLabel : 'UTC') + ')'"></h3>
+            <div class="grid-24">
+              <template x-for="h in hourlyStatus" :key="h.hour">
+                <div class="grid-cell"
+                     :class="'cell-' + h.status"
+                     :title="h.hour + ':00 — ' + h.status + ' (' + h.count + ' checks)'"
+                     @mouseenter="showHourTooltip($event, h)"
+                     @mouseleave="hideTooltip()">
+                </div>
               </template>
-            </tbody>
-          </table>
+            </div>
+            <div class="hour-labels">
+              <template x-for="item in hourLabelsDisplay" :key="item.key">
+                <span class="hour-label-item">
+                  <span x-text="item.label"></span>
+                  <span x-show="item.shift !== 0" x-text="item.shift > 0 ? '+1d' : '-1d'" class="hour-label-shift"></span>
+                </span>
+              </template>
+            </div>
+          </div>
+
+          <!-- Response time chart -->
+          <div class="chart-container">
+            <h3 class="section-subheading">{% if check.type == 'knowledge' %}Indexing Time{% else %}Response Time{% endif %}</h3>
+            <div class="chart-canvas-area">
+              <canvas x-ref="responseChartUtc" :class="{ 'chart-inactive': showLocalTime }"></canvas>
+              <canvas x-ref="responseChartLocal" :class="{ 'chart-inactive': !showLocalTime }"></canvas>
+            </div>
+          </div>
+
+          <div>
+            <table class="results-table">
+              <thead>
+                <tr>
+                  <th x-text="showLocalTime ? 'Time (' + tzLabel + ')' : 'Time (UTC)'"></th>
+                  <th>Status</th>
+                  <th>{% if check.type == 'knowledge' %}Indexing Time{% else %}Response Time{% endif %}</th>
+                  <th>Message</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="r in dayRecords" :key="r.timestamp">
+                  <tr>
+                    <td x-text="formatDisplayTime(r.timestamp)"></td>
+                    <td><span class="check-status-badge" :class="'badge-' + r.status" x-text="r.status"></span></td>
+                    <td x-text="r.response_time_ms >= 0 ? formatTime(r.response_time_ms) : '-'"></td>
+                    <td x-text="r.message"></td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
         </div>
         <div x-show="!loading && selectedDate && dayRecords.length === 0" class="no-data">
           No data for this date.
