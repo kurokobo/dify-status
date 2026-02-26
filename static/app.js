@@ -113,6 +113,11 @@ function statusApp() {
       }
     },
 
+    _hasDataForDate(dateStr) {
+      const day = this.summary.overall_days.find(d => d.date === dateStr);
+      return day && day.status !== 'nodata';
+    },
+
     async load24hData() {
       this.loadingHourly = true;
       const now = new Date();
@@ -122,22 +127,24 @@ function statusApp() {
       const yesterdayUtc = new Date(nowMs - 86400000).toISOString().substring(0, 10);
 
       const fetchPromises = [];
-      for (const check of this.summary.checks) {
-        for (const dateStr of [yesterdayUtc, todayUtc]) {
+      for (const dateStr of [yesterdayUtc, todayUtc]) {
+        if (this._hasDataForDate(dateStr)) {
           fetchPromises.push(
-            fetch(`data/${check.id}/${dateStr}.json`)
-              .then(r => r.ok ? r.json() : [])
-              .catch(() => [])
-              .then(data => ({ checkId: check.id, records: data }))
+            fetch(`data/daily/${dateStr}.json`)
+              .then(r => r.ok ? r.json() : {})
+              .catch(() => ({}))
+              .then(data => ({ date: dateStr, merged: data }))
           );
         }
       }
       const results = await Promise.all(fetchPromises);
 
       const recordsByCheck = {};
-      for (const { checkId, records } of results) {
-        if (!recordsByCheck[checkId]) recordsByCheck[checkId] = [];
-        recordsByCheck[checkId].push(...records);
+      for (const { merged } of results) {
+        for (const [checkId, records] of Object.entries(merged)) {
+          if (!recordsByCheck[checkId]) recordsByCheck[checkId] = [];
+          recordsByCheck[checkId].push(...records);
+        }
       }
 
       const allCheckHourly = [];
@@ -252,22 +259,24 @@ function statusApp() {
       }
 
       const fetchPromises = [];
-      for (const check of this.summary.checks) {
-        for (const dateStr of dates) {
+      for (const dateStr of dates) {
+        if (this._hasDataForDate(dateStr)) {
           fetchPromises.push(
-            fetch(`data/${check.id}/${dateStr}.json`)
-              .then(r => r.ok ? r.json() : [])
-              .catch(() => [])
-              .then(data => ({ checkId: check.id, date: dateStr, records: data }))
+            fetch(`data/daily/${dateStr}.json`)
+              .then(r => r.ok ? r.json() : {})
+              .catch(() => ({}))
+              .then(data => ({ date: dateStr, merged: data }))
           );
         }
       }
       const results = await Promise.all(fetchPromises);
 
       const recordsByCheckDate = {};
-      for (const { checkId, date, records } of results) {
-        if (!recordsByCheckDate[checkId]) recordsByCheckDate[checkId] = {};
-        recordsByCheckDate[checkId][date] = records;
+      for (const { date, merged } of results) {
+        for (const [checkId, records] of Object.entries(merged)) {
+          if (!recordsByCheckDate[checkId]) recordsByCheckDate[checkId] = {};
+          recordsByCheckDate[checkId][date] = records;
+        }
       }
 
       const allCheckMultiDay = [];
@@ -550,10 +559,28 @@ function detailApp() {
       if (this._chartLocal) { this._chartLocal.destroy(); this._chartLocal = null; }
     },
 
+    _hasCheckDataForDate(dateStr) {
+      const day = (this.checkSummary.days || []).find(d => d.date === dateStr);
+      if (day && day.status !== 'nodata') return true;
+      const latestDate = this.checkSummary.latest_timestamp
+        ? this.checkSummary.latest_timestamp.substring(0, 10)
+        : null;
+      return dateStr === latestDate;
+    },
+
     selectDate(date) {
       if (this.selectedDate === date) return;
       this._destroyCharts();
       this.selectedDate = date;
+
+      if (!this._hasCheckDataForDate(date)) {
+        this.dayRecords = [];
+        this.hourlyStatus = [];
+        this.hasLoadedData = false;
+        this.loading = false;
+        return;
+      }
+
       this.loading = true;
 
       if (this._fetchController) this._fetchController.abort();

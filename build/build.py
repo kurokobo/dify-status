@@ -235,6 +235,9 @@ def build_site() -> None:
     detail_dir.mkdir(exist_ok=True)
     tmpl_detail = env.get_template("detail.html")
 
+    # Collect per-check detail data for both per-check and merged daily files
+    all_detail_data: dict[str, dict[str, list[dict]]] = {}
+
     for check_def in config["checks"]:
         cid = check_def["id"]
         check_summary = next((c for c in summary["checks"] if c["id"] == cid), None)
@@ -249,12 +252,28 @@ def build_site() -> None:
 
         # Per-check daily JSON files
         detail_data = build_detail_data(records, cid)
+        all_detail_data[cid] = detail_data
         check_data_dir = SITE_DIR / "data" / cid
         check_data_dir.mkdir(parents=True, exist_ok=True)
         for date_str, date_records in detail_data.items():
             (check_data_dir / f"{date_str}.json").write_text(
                 json.dumps(date_records, ensure_ascii=False), encoding="utf-8"
             )
+
+    # Merged daily JSON files (all checks per date)
+    daily_dir = SITE_DIR / "data" / "daily"
+    daily_dir.mkdir(parents=True, exist_ok=True)
+    all_dates: set[str] = set()
+    for detail_data in all_detail_data.values():
+        all_dates.update(detail_data.keys())
+    for date_str in sorted(all_dates):
+        merged: dict[str, list[dict]] = {}
+        for cid, detail_data in all_detail_data.items():
+            if date_str in detail_data:
+                merged[cid] = detail_data[date_str]
+        (daily_dir / f"{date_str}.json").write_text(
+            json.dumps(merged, ensure_ascii=False), encoding="utf-8"
+        )
 
     # Copy static files
     static_src = ROOT / "static"
