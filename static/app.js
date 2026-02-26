@@ -71,23 +71,45 @@ function statusApp() {
   return {
     summary: SUMMARY_DATA,
     expandedChecks: {},
-    viewMode: '90day',
+    viewMode: localStorage.getItem('viewMode') || '90day',
     hourlyChecks: [],
     overallHourly: [],
     loadingHourly: false,
     _24hLoaded: false,
+    multiDayOverall: [],
+    multiDayChecks: [],
+    loadingMultiDay: false,
+    _multiDayLoaded: 0,
     show24hLocalTime: new Date().getTimezoneOffset() !== 0,
     tzLabel: _computeTzLabel(),
     ...tooltipMixin(),
+
+    init() {
+      if (this.viewMode !== '90day') {
+        this.switchView(this.viewMode);
+      }
+    },
 
     toggleInfo(checkId) {
       this.expandedChecks[checkId] = !this.expandedChecks[checkId];
     },
 
+    viewModeHeading() {
+      switch (this.viewMode) {
+        case '24h': return 'Last 24 Hours';
+        case '3d': return 'Last 3 Days';
+        case '7d': return 'Last 7 Days';
+        default: return '90-Day History';
+      }
+    },
+
     async switchView(mode) {
       this.viewMode = mode;
+      localStorage.setItem('viewMode', mode);
       if (mode === '24h' && !this._24hLoaded) {
         await this.load24hData();
+      } else if ((mode === '3d' || mode === '7d') && this._multiDayLoaded < (mode === '7d' ? 7 : 3)) {
+        await this.loadMultiDayData(mode === '7d' ? 7 : 3);
       }
     },
 
@@ -215,6 +237,160 @@ function statusApp() {
           shift: isYesterday ? -1 : 0,
         };
       });
+    },
+
+    // --- Multi-day (3D/7D) ---
+
+    async loadMultiDayData(numDays) {
+      this.loadingMultiDay = true;
+      const now = new Date();
+      const nowMs = now.getTime();
+
+      const dates = [];
+      for (let i = numDays - 1; i >= 0; i--) {
+        dates.push(new Date(nowMs - i * 86400000).toISOString().substring(0, 10));
+      }
+
+      const fetchPromises = [];
+      for (const check of this.summary.checks) {
+        for (const dateStr of dates) {
+          fetchPromises.push(
+            fetch(`data/${check.id}/${dateStr}.json`)
+              .then(r => r.ok ? r.json() : [])
+              .catch(() => [])
+              .then(data => ({ checkId: check.id, date: dateStr, records: data }))
+          );
+        }
+      }
+      const results = await Promise.all(fetchPromises);
+
+      const recordsByCheckDate = {};
+      for (const { checkId, date, records } of results) {
+        if (!recordsByCheckDate[checkId]) recordsByCheckDate[checkId] = {};
+        recordsByCheckDate[checkId][date] = records;
+      }
+
+      const allCheckMultiDay = [];
+      for (const check of this.summary.checks) {
+        const days = [];
+        for (const dateStr of dates) {
+          const records = (recordsByCheckDate[check.id] || {})[dateStr] || [];
+          const hours = this._computeDayHourlyBuckets(records);
+          days.push({ date: dateStr, hours, dayStatus: this._summarizeDayStatus(hours) });
+        }
+        allCheckMultiDay.push({
+          id: check.id,
+          name: check.name,
+          current_status: check.current_status,
+          latest_timestamp: check.latest_timestamp,
+          latest_response_ms: check.latest_response_ms,
+          days,
+        });
+      }
+
+      const overallMultiDay = [];
+      for (let d = 0; d < dates.length; d++) {
+        const hours = [];
+        for (let h = 0; h < 24; h++) {
+          const checkStatuses = allCheckMultiDay
+            .map(c => c.days[d].hours[h].status)
+            .filter(s => s !== 'nodata');
+          let status = 'nodata';
+          if (checkStatuses.length > 0) {
+            if (checkStatuses.some(s => s === 'down')) status = 'down';
+            else if (checkStatuses.some(s => s === 'degraded')) status = 'degraded';
+            else status = 'up';
+          }
+          hours.push({ utcHour: h, status });
+        }
+        overallMultiDay.push({ date: dates[d], hours, dayStatus: this._summarizeDayStatus(hours) });
+      }
+
+      this.multiDayOverall = overallMultiDay;
+      this.multiDayChecks = allCheckMultiDay;
+      this._multiDayLoaded = numDays;
+      this.loadingMultiDay = false;
+    },
+
+    _computeDayHourlyBuckets(records) {
+      const hours = [];
+      for (let h = 0; h < 24; h++) {
+        hours.push({ utcHour: h, status: 'nodata', count: 0, _statuses: [] });
+      }
+      for (const r of records) {
+        const hour = parseInt(r.timestamp.substring(11, 13), 10);
+        if (hour >= 0 && hour < 24) {
+          hours[hour].count++;
+          hours[hour]._statuses.push(r.status);
+        }
+      }
+      for (const bucket of hours) {
+        if (bucket.count === 0) continue;
+        const statuses = bucket._statuses;
+        const downCount = statuses.filter(s => s === 'down').length;
+        if (downCount === 0) {
+          bucket.status = statuses.some(s => s === 'degraded') ? 'degraded' : 'up';
+        } else if (downCount / statuses.length >= 0.5) {
+          bucket.status = 'down';
+        } else {
+          bucket.status = 'degraded';
+        }
+        delete bucket._statuses;
+      }
+      return hours;
+    },
+
+    _summarizeDayStatus(hours) {
+      const statuses = hours.map(h => h.status).filter(s => s !== 'nodata');
+      if (statuses.length === 0) return 'nodata';
+      if (statuses.some(s => s === 'down')) return 'down';
+      if (statuses.some(s => s === 'degraded')) return 'degraded';
+      return 'up';
+    },
+
+    multiDaySlice(arr) {
+      const n = this.viewMode === '3d' ? 3 : 7;
+      return arr.slice(-n).reverse();
+    },
+
+    formatShortDate(dateStr) {
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const parts = dateStr.split('-');
+      return months[parseInt(parts[1], 10) - 1] + ' ' + parseInt(parts[2], 10);
+    },
+
+    multiDayHourLabels() {
+      return _computeHourLabels(this.show24hLocalTime);
+    },
+
+    showDaySummaryTooltip(event, day, name) {
+      this.tooltip.visible = true;
+      this.tooltip.x = event.clientX + 12;
+      this.tooltip.y = event.clientY - 40;
+      this.tooltip.date = this.formatShortDate(day.date) + ' (daily)';
+      this.tooltip.name = name || '';
+      this.tooltip.status = day.dayStatus;
+      this.tooltip.uptime = null;
+      this.tooltip.avgResp = -1;
+    },
+
+    showMultiDayTooltip(event, h, dateStr, name) {
+      this.tooltip.visible = true;
+      this.tooltip.x = event.clientX + 12;
+      this.tooltip.y = event.clientY - 40;
+      const utcH = h.utcHour;
+      const hStr = String(utcH).padStart(2, '0');
+      if (this.show24hLocalTime) {
+        const d = new Date(dateStr + 'T' + hStr + ':00:00Z');
+        const localH = String(d.getHours()).padStart(2, '0');
+        this.tooltip.date = this.formatShortDate(dateStr) + ', ' + localH + ':00\u2013' + localH + ':59 (' + _computeTzLabel() + ')';
+      } else {
+        this.tooltip.date = this.formatShortDate(dateStr) + ', ' + hStr + ':00\u2013' + hStr + ':59 (UTC)';
+      }
+      this.tooltip.name = name || '';
+      this.tooltip.status = h.status;
+      this.tooltip.uptime = null;
+      this.tooltip.avgResp = -1;
     },
 
     show24hLatestTooltip(event, status, name, timestamp, responseMs) {
@@ -352,10 +528,16 @@ function detailApp() {
     },
 
     init() {
-      const days = this.checkSummary.days || [];
-      const latest = [...days].reverse().find(d => d.status !== 'nodata');
-      if (latest) {
-        this.selectDate(latest.date);
+      const hash = window.location.hash.substring(1);
+      const dates = this._availableDates();
+      if (hash && dates.includes(hash)) {
+        this.selectDate(hash);
+      } else {
+        const days = this.checkSummary.days || [];
+        const latest = [...days].reverse().find(d => d.status !== 'nodata');
+        if (latest) {
+          this.selectDate(latest.date);
+        }
       }
       this.$watch('showLocalTime', () => {
         this.hourLabelsDisplay = _computeHourLabels(this.showLocalTime);

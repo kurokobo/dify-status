@@ -223,6 +223,42 @@ h1 {
   opacity: 0.75;
 }
 
+/* Multi-day grid (3D/7D) */
+.multiday-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.multiday-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.multiday-date {
+  flex-shrink: 0;
+  width: 44px;
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+  text-align: right;
+  text-decoration: none;
+}
+
+a.multiday-date:hover {
+  color: var(--color-text);
+  text-decoration: underline;
+}
+
+.multiday-row .grid-24 {
+  flex: 1;
+  min-width: 0;
+}
+
+.multiday-hour-labels {
+  margin-left: 50px;
+}
+
 /* Chart */
 .chart-container {
   margin-top: 1rem;
