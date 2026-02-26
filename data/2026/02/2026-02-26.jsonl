@@ -536,3 +536,14 @@
 {"check_id": "indexing_pro", "timestamp": "2026-02-26T12:45:47Z", "status": "up", "response_time_ms": -1, "message": "Document uploaded. Awaiting next cycle to verify indexing status.", "provisional": true}
 {"check_id": "webhook_free", "timestamp": "2026-02-26T12:31:17Z", "status": "up", "response_time_ms": 126, "message": "Webhook processed in 0.1s", "provisional": false}
 {"check_id": "webhook_pro", "timestamp": "2026-02-26T12:31:19Z", "status": "up", "response_time_ms": 194, "message": "Webhook processed in 0.2s", "provisional": false}
+{"check_id": "web_ui", "timestamp": "2026-02-26T13:00:47Z", "status": "up", "response_time_ms": 371, "message": "HTTP 200", "provisional": false}
+{"check_id": "api", "timestamp": "2026-02-26T13:00:52Z", "status": "up", "response_time_ms": 4690, "message": "HTTP 200, body contains 'pong'", "provisional": false}
+{"check_id": "sandbox", "timestamp": "2026-02-26T13:00:53Z", "status": "up", "response_time_ms": 1750, "message": "HTTP 200, body contains 'pong from sandbox'", "provisional": false}
+{"check_id": "plugin", "timestamp": "2026-02-26T13:01:09Z", "status": "up", "response_time_ms": 16102, "message": "HTTP 200, body contains 'pong from plugin'", "provisional": false}
+{"check_id": "retrieve", "timestamp": "2026-02-26T13:01:19Z", "status": "up", "response_time_ms": 9340, "message": "HTTP 200, 1 record(s) returned", "provisional": false}
+{"check_id": "indexing_free", "timestamp": "2026-02-26T12:45:33Z", "status": "up", "response_time_ms": 1000, "message": "Indexing completed in 1s", "provisional": false}
+{"check_id": "indexing_free", "timestamp": "2026-02-26T13:01:20Z", "status": "up", "response_time_ms": -1, "message": "Document uploaded. Awaiting next cycle to verify indexing status.", "provisional": true}
+{"check_id": "indexing_pro", "timestamp": "2026-02-26T12:45:47Z", "status": "up", "response_time_ms": 2000, "message": "Indexing completed in 2s", "provisional": false}
+{"check_id": "indexing_pro", "timestamp": "2026-02-26T13:01:28Z", "status": "up", "response_time_ms": -1, "message": "Document uploaded. Awaiting next cycle to verify indexing status.", "provisional": true}
+{"check_id": "webhook_free", "timestamp": "2026-02-26T12:45:55Z", "status": "up", "response_time_ms": 206, "message": "Webhook processed in 0.2s", "provisional": false}
+{"check_id": "webhook_pro", "timestamp": "2026-02-26T12:45:58Z", "status": "up", "response_time_ms": 170, "message": "Webhook processed in 0.2s", "provisional": false}
