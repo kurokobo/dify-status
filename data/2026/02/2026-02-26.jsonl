@@ -350,3 +350,11 @@
 {"check_id": "webhook_free", "timestamp": "2026-02-26T08:02:06Z", "status": "up", "response_time_ms": 107, "message": "Webhook processed in 0.1s", "provisional": false}
 {"check_id": "webhook_pro", "timestamp": "2026-02-26T08:02:23Z", "status": "up", "response_time_ms": 117, "message": "Webhook processed in 0.1s", "provisional": false}
 {"check_id": "webhook_pro", "timestamp": "2026-02-26T08:17:29Z", "status": "down", "response_time_ms": -1, "message": "Webhook trigger timeout", "provisional": false}
+{"check_id": "web_ui", "timestamp": "2026-02-26T08:30:36Z", "status": "up", "response_time_ms": 477, "message": "HTTP 200", "provisional": false}
+{"check_id": "api", "timestamp": "2026-02-26T08:30:36Z", "status": "up", "response_time_ms": 543, "message": "HTTP 200, body contains 'pong'", "provisional": false}
+{"check_id": "sandbox", "timestamp": "2026-02-26T08:30:38Z", "status": "up", "response_time_ms": 1369, "message": "HTTP 200, body contains 'pong from sandbox'", "provisional": false}
+{"check_id": "plugin", "timestamp": "2026-02-26T08:30:46Z", "status": "up", "response_time_ms": 7946, "message": "HTTP 200, body contains 'pong from plugin'", "provisional": false}
+{"check_id": "retrieve", "timestamp": "2026-02-26T08:31:01Z", "status": "down", "response_time_ms": 15127, "message": "HTTP 400 (expected 200)", "provisional": false}
+{"check_id": "indexing_free", "timestamp": "2026-02-26T08:31:17Z", "status": "down", "response_time_ms": -1, "message": "Upload failed: HTTP 500", "provisional": false}
+{"check_id": "indexing_pro", "timestamp": "2026-02-26T08:31:29Z", "status": "down", "response_time_ms": -1, "message": "Upload failed: HTTP 500", "provisional": false}
+{"check_id": "webhook_free", "timestamp": "2026-02-26T08:16:30Z", "status": "up", "response_time_ms": 359, "message": "Webhook processed in 0.4s", "provisional": false}
