@@ -69,9 +69,7 @@ class WebhookCheck(BaseCheck):
         else:
             next_index = 0
 
-        trigger_result = await self._trigger_webhook(next_index)
-        if trigger_result is not None:
-            results.append(trigger_result)
+        results.append(await self._trigger_webhook(next_index))
 
         return results
 
@@ -136,11 +134,12 @@ class WebhookCheck(BaseCheck):
             return self._result(Status.DOWN, -1, f"Error checking status: {exc}",
                                 timestamp=triggered_at)
 
-    async def _trigger_webhook(self, account_index: int) -> CheckResult | None:
-        """Trigger the webhook. Returns a CheckResult only on failure."""
+    async def _trigger_webhook(self, account_index: int) -> CheckResult:
+        """Trigger the webhook. Returns a provisional UP result on success, or DOWN on failure."""
         account = self.accounts[account_index]
         trigger_id = f"status-check-{uuid.uuid4().hex[:12]}"
         now = datetime.now(timezone.utc)
+        triggered_at = now.strftime("%Y-%m-%dT%H:%M:%SZ")
 
         body = {
             "id": trigger_id,
@@ -167,10 +166,16 @@ class WebhookCheck(BaseCheck):
 
                 self._save_state({
                     "trigger_id": trigger_id,
-                    "triggered_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    "triggered_at": triggered_at,
                     "account_index": account_index,
                 })
-                return None  # Success — result will be checked next cycle
+                result = self._result(
+                    Status.UP, -1,
+                    "Webhook triggered. Awaiting next cycle to verify execution status.",
+                    timestamp=triggered_at,
+                )
+                result.provisional = True
+                return result
 
         except httpx.TimeoutException:
             return self._result(Status.DOWN, -1, "Webhook trigger timeout")
