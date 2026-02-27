@@ -145,6 +145,25 @@ h1 {
   opacity: 0.7;
 }
 
+/* 90-day grid labels */
+.grid-90-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+  margin-top: 0.25rem;
+  padding: 0 2px;
+}
+
+.grid-90-label-item {
+  display: inline-flex;
+  flex-direction: column;
+  line-height: 1.2;
+  width: 0;
+  overflow: visible;
+  white-space: nowrap;
+}
+
 .cell-up { background: var(--color-up); }
 .cell-degraded { background: var(--color-degraded); }
 .cell-down { background: var(--color-down); }
@@ -238,11 +257,19 @@ h1 {
 
 .multiday-date {
   flex-shrink: 0;
-  width: 44px;
+  width: 66px;
   font-size: 0.7rem;
   color: var(--color-text-secondary);
-  text-align: right;
   text-decoration: none;
+  display: inline-flex;
+  justify-content: flex-end;
+  gap: 2px;
+}
+
+.multiday-dow {
+  width: 1.3em;
+  text-align: right;
+  opacity: 0.7;
 }
 
 a.multiday-date:hover {
@@ -256,7 +283,7 @@ a.multiday-date:hover {
 }
 
 .multiday-hour-labels {
-  margin-left: 50px;
+  margin-left: 72px;
 }
 
 /* Chart */

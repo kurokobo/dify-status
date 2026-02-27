@@ -44,6 +44,11 @@
                @mouseleave="hideTooltip()">
           </div>
         </div>
+        <div class="grid-90-labels">
+          <template x-for="lbl in ninetyDayLabels(checkSummary.days)" :key="lbl.label">
+            <span class="grid-90-label-item" :style="'align-items:' + (lbl.isFirst ? 'flex-start' : lbl.isLast ? 'flex-end' : 'center')" x-text="lbl.label"></span>
+          </template>
+        </div>
       </div>
 
       <div x-data="{ open: false }">

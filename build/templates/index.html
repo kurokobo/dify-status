@@ -82,12 +82,13 @@
         <h2 class="section-heading" x-text="viewModeHeading()"></h2>
         <div class="tz-switcher">
           <button :class="{ 'tz-active': viewMode === '90day' }" @click="switchView('90day')">90D</button>
+          <button :class="{ 'tz-active': viewMode === '14d' }" @click="switchView('14d')">14D</button>
           <button :class="{ 'tz-active': viewMode === '7d' }" @click="switchView('7d')">7D</button>
           <button :class="{ 'tz-active': viewMode === '3d' }" @click="switchView('3d')">3D</button>
           <button :class="{ 'tz-active': viewMode === '24h' }" @click="switchView('24h')">24H</button>
         </div>
       </div>
-      <div class="tz-switcher-row" x-show="(viewMode === '24h' && !loadingHourly && overallHourly.length > 0) || ((viewMode === '3d' || viewMode === '7d') && !loadingMultiDay && multiDayOverall.length > 0)">
+      <div class="tz-switcher-row" x-show="(viewMode === '24h' && !loadingHourly && overallHourly.length > 0) || ((viewMode === '3d' || viewMode === '7d' || viewMode === '14d') && !loadingMultiDay && multiDayOverall.length > 0)">
         <div class="tz-switcher">
           <button :class="{ 'tz-active': !show24hLocalTime }" @click="show24hLocalTime = false">UTC</button>
           <button :class="{ 'tz-active': show24hLocalTime }" @click="show24hLocalTime = true" x-text="tzLabel"></button>
@@ -114,6 +115,11 @@
                  @mouseenter="showLatestCellTooltip($event, summary.current_overall_status, '', summary.last_checked, -1)"
                  @mouseleave="hideTooltip()">
             </div>
+          </div>
+          <div class="grid-90-labels">
+            <template x-for="lbl in ninetyDayLabels(summary.overall_days)" :key="lbl.label">
+              <span class="grid-90-label-item" :style="'align-items:' + (lbl.isFirst ? 'flex-start' : lbl.isLast ? 'flex-end' : 'center')" x-text="lbl.label"></span>
+            </template>
           </div>
         </div>
       </div>
@@ -152,8 +158,8 @@
         </div>
       </div>
 
-      <!-- Multi-day (3D/7D) Overall -->
-      <div x-show="viewMode === '3d' || viewMode === '7d'">
+      <!-- Multi-day (3D/7D/14D) Overall -->
+      <div x-show="viewMode === '3d' || viewMode === '7d' || viewMode === '14d'">
         <div x-show="loadingMultiDay" class="loading">Loading data...</div>
         <div x-show="!loadingMultiDay && multiDayOverall.length > 0">
           <div class="check-row">
@@ -163,7 +169,10 @@
             <div class="multiday-grid">
               <template x-for="(day, dayIdx) in multiDaySlice(multiDayOverall)" :key="day.date">
                 <div class="multiday-row">
-                  <span class="multiday-date" x-text="formatShortDate(day.date)"></span>
+                  <span class="multiday-date">
+                    <span x-text="formatShortDate(day.date)"></span>
+                    <span class="multiday-dow" x-text="dayOfWeek(day.date)"></span>
+                  </span>
                   <div class="grid-24">
                     <template x-for="(h, idx) in day.hours" :key="idx">
                       <div class="grid-cell"
@@ -173,8 +182,8 @@
                       </div>
                     </template>
                     <div class="grid-cell cell-latest"
-                         :class="dayIdx === 0 ? 'cell-' + summary.current_overall_status : 'cell-' + day.dayStatus"
-                         @mouseenter="dayIdx === 0 ? showLatestCellTooltip($event, summary.current_overall_status, '', summary.last_checked, -1) : showDaySummaryTooltip($event, day, '')"
+                         :class="dayIdx === _multiDayLastIdx() ? 'cell-' + summary.current_overall_status : 'cell-' + day.dayStatus"
+                         @mouseenter="dayIdx === _multiDayLastIdx() ? showLatestCellTooltip($event, summary.current_overall_status, '', summary.last_checked, -1) : showDaySummaryTooltip($event, day, '')"
                          @mouseleave="hideTooltip()">
                     </div>
                   </div>
@@ -251,6 +260,11 @@
                    @mouseleave.stop="hideTooltip()">
               </div>
             </div>
+            <div class="grid-90-labels">
+              <template x-for="lbl in ninetyDayLabels(check.days)" :key="lbl.label">
+                <span class="grid-90-label-item" :style="'align-items:' + (lbl.isFirst ? 'flex-start' : lbl.isLast ? 'flex-end' : 'center')" x-text="lbl.label"></span>
+              </template>
+            </div>
           </a>
         </template>
       </div>
@@ -277,12 +291,20 @@
                    @mouseleave.stop="hideTooltip()">
               </div>
             </div>
+            <div class="hour-labels">
+              <template x-for="item in hourLabels24h()" :key="item.key">
+                <span class="hour-label-item">
+                  <span x-text="item.label"></span>
+                  <span x-show="item.shift !== 0" x-text="item.shift > 0 ? '+1d' : '-1d'" class="hour-label-shift"></span>
+                </span>
+              </template>
+            </div>
           </a>
         </template>
       </div>
 
-      <!-- Multi-day (3D/7D) per-check rows -->
-      <div x-show="(viewMode === '3d' || viewMode === '7d') && !loadingMultiDay && multiDayChecks.length > 0">
+      <!-- Multi-day (3D/7D/14D) per-check rows -->
+      <div x-show="(viewMode === '3d' || viewMode === '7d' || viewMode === '14d') && !loadingMultiDay && multiDayChecks.length > 0">
         <template x-for="mcheck in multiDayChecks" :key="mcheck.id">
           <a :href="'detail/' + mcheck.id + '.html'" class="check-row check-row-link">
             <div class="check-header">
@@ -292,9 +314,10 @@
             <div class="multiday-grid">
               <template x-for="(day, dayIdx) in multiDaySlice(mcheck.days)" :key="day.date">
                 <div class="multiday-row">
-                  <a class="multiday-date" x-text="formatShortDate(day.date)"
-                     :href="'detail/' + mcheck.id + '.html#' + day.date"
-                     @click.stop></a>
+                  <a class="multiday-date" :href="'detail/' + mcheck.id + '.html#' + day.date" @click.stop>
+                    <span x-text="formatShortDate(day.date)"></span>
+                    <span class="multiday-dow" x-text="dayOfWeek(day.date)"></span>
+                  </a>
                   <div class="grid-24">
                     <template x-for="(h, idx) in day.hours" :key="idx">
                       <div class="grid-cell"
@@ -305,14 +328,22 @@
                       </div>
                     </template>
                     <div class="grid-cell cell-latest"
-                         :class="dayIdx === 0 ? 'cell-' + mcheck.current_status : 'cell-' + day.dayStatus"
+                         :class="dayIdx === _multiDayLastIdx() ? 'cell-' + mcheck.current_status : 'cell-' + day.dayStatus"
                          @click.prevent.stop="window.location.href = 'detail/' + mcheck.id + '.html#' + day.date"
-                         @mouseenter.stop="dayIdx === 0 ? show24hLatestTooltip($event, mcheck.current_status, mcheck.name, mcheck.latest_timestamp, mcheck.latest_response_ms) : showDaySummaryTooltip($event, day, mcheck.name)"
+                         @mouseenter.stop="dayIdx === _multiDayLastIdx() ? show24hLatestTooltip($event, mcheck.current_status, mcheck.name, mcheck.latest_timestamp, mcheck.latest_response_ms) : showDaySummaryTooltip($event, day, mcheck.name)"
                          @mouseleave.stop="hideTooltip()">
                     </div>
                   </div>
                 </div>
               </template>
+              <div class="hour-labels multiday-hour-labels">
+                <template x-for="item in multiDayHourLabels()" :key="item.key">
+                  <span class="hour-label-item">
+                    <span x-text="item.label"></span>
+                    <span x-show="item.shift !== 0" x-text="item.shift > 0 ? '+1d' : '-1d'" class="hour-label-shift"></span>
+                  </span>
+                </template>
+              </div>
             </div>
           </a>
         </template>

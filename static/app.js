@@ -99,6 +99,7 @@ function statusApp() {
         case '24h': return 'Last 24 Hours';
         case '3d': return 'Last 3 Days';
         case '7d': return 'Last 7 Days';
+        case '14d': return 'Last 14 Days';
         default: return '90-Day History';
       }
     },
@@ -108,8 +109,11 @@ function statusApp() {
       localStorage.setItem('viewMode', mode);
       if (mode === '24h' && !this._24hLoaded) {
         await this.load24hData();
-      } else if ((mode === '3d' || mode === '7d') && this._multiDayLoaded < (mode === '7d' ? 7 : 3)) {
-        await this.loadMultiDayData(mode === '7d' ? 7 : 3);
+      } else if (mode === '3d' || mode === '7d' || mode === '14d') {
+        const numDays = { '3d': 3, '7d': 7, '14d': 14 }[mode];
+        if (this._multiDayLoaded < numDays) {
+          await this.loadMultiDayData(numDays);
+        }
       }
     },
 
@@ -358,14 +362,44 @@ function statusApp() {
     },
 
     multiDaySlice(arr) {
-      const n = this.viewMode === '3d' ? 3 : 7;
-      return arr.slice(-n).reverse();
+      const n = { '3d': 3, '7d': 7, '14d': 14 }[this.viewMode] || 7;
+      return arr.slice(-n);
+    },
+
+    _multiDayLastIdx() {
+      const n = { '3d': 3, '7d': 7, '14d': 14 }[this.viewMode] || 7;
+      return Math.min(n, this.multiDayOverall.length) - 1;
     },
 
     formatShortDate(dateStr) {
       const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
       const parts = dateStr.split('-');
       return months[parseInt(parts[1], 10) - 1] + ' ' + parseInt(parts[2], 10);
+    },
+
+    formatShortDateDow(dateStr) {
+      const dow = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+      const d = new Date(dateStr + 'T00:00:00Z');
+      return this.formatShortDate(dateStr) + ' ' + dow[d.getUTCDay()];
+    },
+
+    dayOfWeek(dateStr) {
+      const dow = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+      const d = new Date(dateStr + 'T00:00:00Z');
+      return dow[d.getUTCDay()];
+    },
+
+    ninetyDayLabels(days) {
+      if (!days || days.length < 2) return [];
+      const last = days.length - 1;
+      const indices = [0];
+      for (let i = 30; i < last; i += 30) indices.push(i);
+      indices.push(last);
+      return indices.map((idx, i, arr) => ({
+        label: this.formatShortDate(days[idx].date),
+        isFirst: i === 0,
+        isLast: i === arr.length - 1,
+      }));
     },
 
     multiDayHourLabels() {
@@ -479,6 +513,25 @@ function detailApp() {
     tzLabel: _computeTzLabel(),
     hourLabelsDisplay: _computeHourLabels(new Date().getTimezoneOffset() !== 0),
     ...tooltipMixin(),
+
+    formatShortDate(dateStr) {
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const parts = dateStr.split('-');
+      return months[parseInt(parts[1], 10) - 1] + ' ' + parseInt(parts[2], 10);
+    },
+
+    ninetyDayLabels(days) {
+      if (!days || days.length < 2) return [];
+      const last = days.length - 1;
+      const indices = [0];
+      for (let i = 30; i < last; i += 30) indices.push(i);
+      indices.push(last);
+      return indices.map((idx, i, arr) => ({
+        label: this.formatShortDate(days[idx].date),
+        isFirst: i === 0,
+        isLast: i === arr.length - 1,
+      }));
+    },
 
     _availableDates() {
       const dates = (this.checkSummary.days || []).map(d => d.date);
@@ -594,7 +647,7 @@ function detailApp() {
         })
         .then(data => {
           if (controller.signal.aborted) return;
-          this.dayRecords = [...data].reverse();
+          this.dayRecords = data;
           this.hourlyStatus = this.computeHourlyStatus(data);
           this.hasLoadedData = data.length > 0;
           this.loading = false;
