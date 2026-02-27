@@ -556,13 +556,13 @@ function detailApp() {
       return (idx >= 0 && idx < dates.length - 1) ? dates[idx + 1] : null;
     },
 
-    _isKnowledge() {
-      return typeof CHECK_TYPE !== 'undefined' && CHECK_TYPE === 'knowledge';
+    _useSeconds() {
+      return typeof CHECK_TYPE === 'undefined' || CHECK_TYPE !== 'webhook';
     },
 
     formatTime(ms) {
-      if (this._isKnowledge()) {
-        return Math.round(ms / 1000) + ' s';
+      if (this._useSeconds()) {
+        return (ms / 1000).toFixed(1) + ' s';
       }
       return ms + ' ms';
     },
@@ -704,10 +704,15 @@ function detailApp() {
             data,
             borderColor: colorUp,
             backgroundColor: 'rgba(45, 164, 78, 0.1)',
+            spanGaps: true,
             segment: {
-              borderColor: ctx => (statuses[ctx.p0DataIndex] !== 'up' || statuses[ctx.p1DataIndex] !== 'up') ? colorDown : colorUp,
+              borderColor: ctx => {
+                if (ctx.p0.skip || ctx.p1.skip) return colorDown;
+                return (statuses[ctx.p0DataIndex] !== 'up' || statuses[ctx.p1DataIndex] !== 'up') ? colorDown : colorUp;
+              },
+              borderDash: ctx => (ctx.p0.skip || ctx.p1.skip) ? [5, 5] : [],
             },
-            fill: true,
+            fill: false,
             tension: 0.3,
             pointRadius: 2,
             pointHoverRadius: 5,
@@ -739,11 +744,11 @@ function detailApp() {
       const localCanvas = this.$refs.responseChartLocal;
       if (!utcCanvas || !localCanvas) return;
 
-      const isKnowledge = this._isKnowledge();
-      const unit = isKnowledge ? 's' : 'ms';
-      const chartLabel = isKnowledge ? 'Indexing Time (s)' : 'Response Time (ms)';
+      const useSeconds = this._useSeconds();
+      const unit = useSeconds ? 's' : 'ms';
+      const chartLabel = useSeconds ? 'Response Time (s)' : 'Response Time (ms)';
       // Use null only when response_time_ms is unavailable; show DOWN points with response times in red
-      const data = records.map(r => r.response_time_ms >= 0 ? (isKnowledge ? r.response_time_ms / 1000 : r.response_time_ms) : null);
+      const data = records.map(r => r.response_time_ms >= 0 ? (useSeconds ? r.response_time_ms / 1000 : r.response_time_ms) : null);
       const statuses = records.map(r => r.status);
       const utcLabels = records.map(r => r.timestamp.substring(11, 16));
       const localLabels = records.map(r => {
