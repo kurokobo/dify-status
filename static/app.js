@@ -638,7 +638,10 @@ function detailApp() {
       return hours;
     },
 
-    _updateOrCreateChart(key, canvas, labels, data, unit, chartLabel, xTitle) {
+    _updateOrCreateChart(key, canvas, labels, data, statuses, unit, chartLabel, xTitle) {
+      const colorUp = '#2da44e';
+      const colorDown = '#cf222e';
+      const pointColors = statuses.map(s => s === 'up' ? colorUp : colorDown);
       this[key] = new Chart(canvas, {
         type: 'line',
         data: {
@@ -646,12 +649,17 @@ function detailApp() {
           datasets: [{
             label: chartLabel,
             data,
-            borderColor: '#2da44e',
+            borderColor: colorUp,
             backgroundColor: 'rgba(45, 164, 78, 0.1)',
+            segment: {
+              borderColor: ctx => (statuses[ctx.p0DataIndex] !== 'up' || statuses[ctx.p1DataIndex] !== 'up') ? colorDown : colorUp,
+            },
             fill: true,
             tension: 0.3,
             pointRadius: 2,
             pointHoverRadius: 5,
+            pointBackgroundColor: pointColors,
+            pointBorderColor: pointColors,
           }],
         },
         options: {
@@ -681,8 +689,9 @@ function detailApp() {
       const isKnowledge = this._isKnowledge();
       const unit = isKnowledge ? 's' : 'ms';
       const chartLabel = isKnowledge ? 'Indexing Time (s)' : 'Response Time (ms)';
-      // Use null for missing values so Chart.js breaks the line at DOWN points
+      // Use null only when response_time_ms is unavailable; show DOWN points with response times in red
       const data = records.map(r => r.response_time_ms >= 0 ? (isKnowledge ? r.response_time_ms / 1000 : r.response_time_ms) : null);
+      const statuses = records.map(r => r.status);
       const utcLabels = records.map(r => r.timestamp.substring(11, 16));
       const localLabels = records.map(r => {
         const d = new Date(r.timestamp);
@@ -691,8 +700,8 @@ function detailApp() {
         return shift === 0 ? timePart : `${timePart} (${shift > 0 ? '+' : ''}${shift}d)`;
       });
 
-      this._updateOrCreateChart('_chartUtc', utcCanvas, utcLabels, data, unit, chartLabel, 'Time (UTC)');
-      this._updateOrCreateChart('_chartLocal', localCanvas, localLabels, data, unit, chartLabel, `Time (${this.tzLabel})`);
+      this._updateOrCreateChart('_chartUtc', utcCanvas, utcLabels, data, statuses, unit, chartLabel, 'Time (UTC)');
+      this._updateOrCreateChart('_chartLocal', localCanvas, localLabels, data, statuses, unit, chartLabel, `Time (${this.tzLabel})`);
     },
 
     showHourTooltip(event, h) {
