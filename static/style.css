@@ -152,7 +152,7 @@ h1 {
   font-size: 0.7rem;
   color: var(--color-text-secondary);
   margin-top: 0.25rem;
-  padding: 0 2px;
+  padding: 0 calc(100% / 46 + 2px) 0 2px;
 }
 
 .grid-90-label-item {
@@ -224,7 +224,7 @@ h1 {
   font-size: 0.7rem;
   color: var(--color-text-secondary);
   margin-top: 0.25rem;
-  padding: 0 2px;
+  padding: 0 calc(100% / 13 + 2px) 0 2px;
 }
 
 .hour-label-item {
@@ -284,6 +284,7 @@ a.multiday-date:hover {
 
 .multiday-hour-labels {
   margin-left: 72px;
+  padding-right: calc((100% - 72px) / 13 + 2px);
 }
 
 /* Chart */
