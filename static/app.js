@@ -289,7 +289,7 @@ function statusApp() {
         for (const dateStr of dates) {
           const records = (recordsByCheckDate[check.id] || {})[dateStr] || [];
           const hours = this._computeDayHourlyBuckets(records);
-          days.push({ date: dateStr, hours, dayStatus: this._summarizeDayStatus(hours) });
+          days.push({ date: dateStr, hours, dayStatus: this._summarizeDayStatus(hours, true) });
         }
         allCheckMultiDay.push({
           id: check.id,
@@ -316,7 +316,16 @@ function statusApp() {
           }
           hours.push({ utcHour: h, status });
         }
-        overallMultiDay.push({ date: dates[d], hours, dayStatus: this._summarizeDayStatus(hours) });
+        const checkDayStatuses = allCheckMultiDay
+          .map(c => c.days[d].dayStatus)
+          .filter(s => s !== 'nodata');
+        let dayStatus = 'nodata';
+        if (checkDayStatuses.length > 0) {
+          if (checkDayStatuses.some(s => s === 'down')) dayStatus = 'down';
+          else if (checkDayStatuses.some(s => s === 'degraded')) dayStatus = 'degraded';
+          else dayStatus = 'up';
+        }
+        overallMultiDay.push({ date: dates[d], hours, dayStatus });
       }
 
       this.multiDayOverall = overallMultiDay;
@@ -353,9 +362,16 @@ function statusApp() {
       return hours;
     },
 
-    _summarizeDayStatus(hours) {
+    _summarizeDayStatus(hours, useThreshold) {
       const statuses = hours.map(h => h.status).filter(s => s !== 'nodata');
       if (statuses.length === 0) return 'nodata';
+      if (useThreshold) {
+        const downCount = statuses.filter(s => s === 'down').length;
+        if (downCount === 0) {
+          return statuses.some(s => s === 'degraded') ? 'degraded' : 'up';
+        }
+        return downCount / statuses.length >= 0.5 ? 'down' : 'degraded';
+      }
       if (statuses.some(s => s === 'down')) return 'down';
       if (statuses.some(s => s === 'degraded')) return 'degraded';
       return 'up';
