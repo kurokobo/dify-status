@@ -109,10 +109,9 @@ class KnowledgeCheck(BaseCheck):
                     completed_at = doc_status.get("completed_at", 0)
                     duration_ms = int((completed_at - started_at) * 1000)
                     await self._delete_document(client, account, dataset_id, document_id)
-                    duration_s = round(duration_ms / 1000)
                     return self._result(
                         Status.UP, duration_ms,
-                        f"Indexing completed in {duration_s}s",
+                        "Completed",
                         timestamp=uploaded_at,
                     )
                 elif indexing_status == "error":
@@ -187,7 +186,7 @@ class KnowledgeCheck(BaseCheck):
                 })
                 result = self._result(
                     Status.UP, -1,
-                    "Document uploaded. Awaiting next cycle to verify indexing status.",
+                    "Uploaded, will check indexing status in the next cycle",
                     timestamp=uploaded_at,
                 )
                 result.provisional = True

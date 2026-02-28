@@ -64,10 +64,9 @@ class RetrieveCheck(BaseCheck):
                     "Response missing 'records' field",
                 )
 
-            count = len(data["records"])
             return self._result(
                 Status.UP, elapsed_ms,
-                f"HTTP 200, {count} record(s) returned",
+                f"HTTP {resp.status_code}",
             )
 
         except httpx.TimeoutException:

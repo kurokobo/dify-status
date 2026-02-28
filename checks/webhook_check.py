@@ -110,7 +110,7 @@ class WebhookCheck(BaseCheck):
                     elapsed_ms = int(elapsed * 1000)
                     return self._result(
                         Status.UP, elapsed_ms,
-                        f"Webhook processed in {elapsed:.1f}s",
+                        "Processed",
                         timestamp=triggered_at,
                     )
                 elif status == "failed":
@@ -171,7 +171,7 @@ class WebhookCheck(BaseCheck):
                 })
                 result = self._result(
                     Status.UP, -1,
-                    "Webhook triggered. Awaiting next cycle to verify execution status.",
+                    "Triggered, will check execution status in the next cycle",
                     timestamp=triggered_at,
                 )
                 result.provisional = True

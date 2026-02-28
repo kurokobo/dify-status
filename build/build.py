@@ -217,7 +217,14 @@ def build_site() -> None:
     site_disclaimer = settings.get("site_disclaimer", [])
     notification = settings.get("notification", {})
 
-    # Render index.html
+    # Write summary.json as a separate cacheable file
+    data_dir_out = SITE_DIR / "data"
+    data_dir_out.mkdir(parents=True, exist_ok=True)
+    (data_dir_out / "summary.json").write_text(
+        json.dumps(summary, ensure_ascii=False), encoding="utf-8"
+    )
+
+    # Render index.html (without inlined summary_json)
     tmpl_index = env.get_template("index.html")
     index_html = tmpl_index.render(
         site_title=site_title,
@@ -226,7 +233,6 @@ def build_site() -> None:
         site_disclaimer=site_disclaimer,
         notification=notification,
         summary=summary,
-        summary_json=json.dumps(summary, ensure_ascii=False),
     )
     (SITE_DIR / "index.html").write_text(index_html, encoding="utf-8")
 
@@ -246,18 +252,28 @@ def build_site() -> None:
             site_url=site_url,
             check=check_def,
             check_summary=check_summary,
-            summary_json=json.dumps(summary, ensure_ascii=False),
+            check_summary_json=json.dumps(check_summary, ensure_ascii=False),
         )
         (detail_dir / f"{cid}.html").write_text(detail_html, encoding="utf-8")
 
-        # Per-check daily JSON files
+        # Per-check daily JSON files (strip redundant check_id and provisional)
         detail_data = build_detail_data(records, cid)
         all_detail_data[cid] = detail_data
         check_data_dir = SITE_DIR / "data" / cid
         check_data_dir.mkdir(parents=True, exist_ok=True)
         for date_str, date_records in detail_data.items():
+            slim_records = [
+                {
+                    "t": r["timestamp"],
+                    "s": r["status"],
+                    "r": r["response_time_ms"],
+                    "m": r.get("message", ""),
+                }
+                for r in date_records
+            ]
             (check_data_dir / f"{date_str}.json").write_text(
-                json.dumps(date_records, ensure_ascii=False), encoding="utf-8"
+                json.dumps(slim_records, ensure_ascii=False, separators=(",", ":")),
+                encoding="utf-8",
             )
 
     # Merged daily JSON files (all checks per date)
@@ -270,9 +286,14 @@ def build_site() -> None:
         merged: dict[str, list[dict]] = {}
         for cid, detail_data in all_detail_data.items():
             if date_str in detail_data:
-                merged[cid] = detail_data[date_str]
+                # Slim: only timestamp and status (index page only uses these)
+                merged[cid] = [
+                    {"t": r["timestamp"], "s": r["status"]}
+                    for r in detail_data[date_str]
+                ]
         (daily_dir / f"{date_str}.json").write_text(
-            json.dumps(merged, ensure_ascii=False), encoding="utf-8"
+            json.dumps(merged, ensure_ascii=False, separators=(",", ":")),
+            encoding="utf-8",
         )
 
     # Copy static files

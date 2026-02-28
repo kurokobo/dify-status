@@ -48,7 +48,7 @@ class HttpCheck(BaseCheck):
                 if expected_body:
                     body = resp.text
                     if expected_body in body:
-                        return self._result(Status.UP, elapsed_ms, f"HTTP {resp.status_code}, body contains '{expected_body}'")
+                        return self._result(Status.UP, elapsed_ms, f"HTTP {resp.status_code}")
                     return self._result(Status.DOWN, elapsed_ms, f"HTTP {resp.status_code}, body missing '{expected_body}'")
                 return self._result(Status.UP, elapsed_ms, f"HTTP {resp.status_code}")
 

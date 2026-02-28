@@ -129,12 +129,12 @@
                 </tr>
               </thead>
               <tbody>
-                <template x-for="r in dayRecords" :key="r.timestamp">
+                <template x-for="r in dayRecords" :key="r.t">
                   <tr>
-                    <td x-text="formatDisplayTime(r.timestamp)"></td>
-                    <td><span class="check-status-badge" :class="'badge-' + r.status" x-text="r.status"></span></td>
-                    <td x-text="r.response_time_ms >= 0 ? formatTime(r.response_time_ms) : '-'"></td>
-                    <td x-text="r.message"></td>
+                    <td x-text="formatDisplayTime(r.t)"></td>
+                    <td><span class="check-status-badge" :class="'badge-' + r.s" x-text="r.s"></span></td>
+                    <td x-text="r.r >= 0 ? formatTime(r.r) : '-'"></td>
+                    <td x-text="r.m"></td>
                   </tr>
                 </template>
               </tbody>
@@ -177,7 +177,7 @@
   </div>
 
   <script>
-    const SUMMARY_DATA = {{ summary_json | safe }};
+    const CHECK_SUMMARY = {{ check_summary_json | safe }};
     const CHECK_ID = "{{ check.id }}";
     const CHECK_TYPE = "{{ check.type }}";
   </script>

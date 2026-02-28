@@ -69,7 +69,8 @@ function tooltipMixin() {
 
 function statusApp() {
   return {
-    summary: SUMMARY_DATA,
+    summary: { checks: [], overall_days: [], current_overall: '', current_overall_status: 'nodata', last_checked: null, dates: [] },
+    _loading: true,
     expandedChecks: {},
     viewMode: localStorage.getItem('viewMode') || '90day',
     hourlyChecks: [],
@@ -84,7 +85,9 @@ function statusApp() {
     tzLabel: _computeTzLabel(),
     ...tooltipMixin(),
 
-    init() {
+    async init() {
+      this.summary = await window._summaryPromise;
+      this._loading = false;
       if (this.viewMode !== '90day') {
         this.switchView(this.viewMode);
       }
@@ -154,7 +157,7 @@ function statusApp() {
       const allCheckHourly = [];
       for (const check of this.summary.checks) {
         const allRecords = recordsByCheck[check.id] || [];
-        const recent = allRecords.filter(r => new Date(r.timestamp).getTime() >= cutoffMs);
+        const recent = allRecords.filter(r => new Date(r.t).getTime() >= cutoffMs);
         const hours = this._compute24hBuckets(recent, now);
         allCheckHourly.push({
           id: check.id,
@@ -212,12 +215,12 @@ function statusApp() {
         });
       }
       for (const r of records) {
-        const rTime = new Date(r.timestamp);
+        const rTime = new Date(r.t);
         const hoursAgo = Math.floor((nowMs - rTime.getTime()) / 3600000);
         if (hoursAgo >= 0 && hoursAgo < 24) {
           const idx = 23 - hoursAgo;
           hours[idx].count++;
-          hours[idx]._statuses.push(r.status);
+          hours[idx]._statuses.push(r.s);
         }
       }
       for (const bucket of hours) {
@@ -340,10 +343,10 @@ function statusApp() {
         hours.push({ utcHour: h, status: 'nodata', count: 0, _statuses: [] });
       }
       for (const r of records) {
-        const hour = parseInt(r.timestamp.substring(11, 13), 10);
+        const hour = parseInt(r.t.substring(11, 13), 10);
         if (hour >= 0 && hour < 24) {
           hours[hour].count++;
-          hours[hour]._statuses.push(r.status);
+          hours[hour]._statuses.push(r.s);
         }
       }
       for (const bucket of hours) {
@@ -516,8 +519,7 @@ function _computeHourLabels(showLocal) {
 
 function detailApp() {
   return {
-    summary: SUMMARY_DATA,
-    checkSummary: SUMMARY_DATA.checks.find(c => c.id === CHECK_ID) || { days: [], current_status: 'nodata' },
+    checkSummary: CHECK_SUMMARY || { days: [], current_status: 'nodata' },
     selectedDate: null,
     dayRecords: [],
     hourlyStatus: [],
@@ -684,11 +686,11 @@ function detailApp() {
         hours.push({ hour: h, status: 'nodata', count: 0 });
       }
       for (const r of records) {
-        const hour = parseInt(r.timestamp.substring(11, 13), 10);
+        const hour = parseInt(r.t.substring(11, 13), 10);
         const bucket = hours[hour];
         bucket.count++;
         if (!bucket._statuses) bucket._statuses = [];
-        bucket._statuses.push(r.status);
+        bucket._statuses.push(r.s);
       }
       for (const bucket of hours) {
         if (bucket.count === 0) continue;
@@ -764,13 +766,13 @@ function detailApp() {
       const unit = useSeconds ? 's' : 'ms';
       const chartLabel = useSeconds ? 'Response Time (s)' : 'Response Time (ms)';
       // Use null only when response_time_ms is unavailable; show DOWN points with response times in red
-      const data = records.map(r => r.response_time_ms >= 0 ? (useSeconds ? r.response_time_ms / 1000 : r.response_time_ms) : null);
-      const statuses = records.map(r => r.status);
-      const utcLabels = records.map(r => r.timestamp.substring(11, 16));
+      const data = records.map(r => r.r >= 0 ? (useSeconds ? r.r / 1000 : r.r) : null);
+      const statuses = records.map(r => r.s);
+      const utcLabels = records.map(r => r.t.substring(11, 16));
       const localLabels = records.map(r => {
-        const d = new Date(r.timestamp);
+        const d = new Date(r.t);
         const timePart = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-        const shift = this._localDayShift(r.timestamp);
+        const shift = this._localDayShift(r.t);
         return shift === 0 ? timePart : `${timePart} (${shift > 0 ? '+' : ''}${shift}d)`;
       });
 

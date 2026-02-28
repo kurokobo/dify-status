@@ -61,6 +61,9 @@
       </div>
       {% endif %}
 
+      <div x-show="_loading" class="loading">Loading status data...</div>
+
+      <div x-show="!_loading">
       <!-- Compact current status for all checks -->
       <div class="current-status-section">
         <p class="section-label">Current Status</p>
@@ -348,6 +351,7 @@
           </a>
         </template>
       </div>
+      </div>
     </main>
 
     <!-- Tooltip -->
@@ -380,7 +384,7 @@
   </div>
 
   <script>
-    const SUMMARY_DATA = {{ summary_json | safe }};
+    window._summaryPromise = fetch('data/summary.json').then(r => r.json());
   </script>
   <script src="static/app.js"></script>
 </body>
