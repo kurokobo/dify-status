@@ -61,11 +61,14 @@ def compute_overall_day_status(check_day_statuses: list[str]) -> str:
     """Determine overall status for a day from per-check day statuses."""
     if not check_day_statuses:
         return "nodata"
-    if any(s == "down" for s in check_day_statuses):
+    down_count = sum(1 for s in check_day_statuses if s == "down")
+    if down_count == 0:
+        if any(s == "degraded" for s in check_day_statuses):
+            return "degraded"
+        return "up"
+    if down_count / len(check_day_statuses) >= 0.5:
         return "down"
-    if any(s == "degraded" for s in check_day_statuses):
-        return "degraded"
-    return "up"
+    return "degraded"
 
 
 def build_summary(

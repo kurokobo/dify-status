@@ -378,15 +378,7 @@ function statusApp() {
           }
           hours.push({ utcHour: h, status });
         }
-        const checkDayStatuses = allCheckMultiDay
-          .map(c => c.days[d].dayStatus)
-          .filter(s => s !== 'nodata');
-        let dayStatus = 'nodata';
-        if (checkDayStatuses.length > 0) {
-          if (checkDayStatuses.some(s => s === 'down')) dayStatus = 'down';
-          else if (checkDayStatuses.some(s => s === 'degraded')) dayStatus = 'degraded';
-          else dayStatus = 'up';
-        }
+        const dayStatus = this._summarizeDayStatus(hours, true);
         overallMultiDay.push({ date: dates[d], hours, dayStatus });
       }
 
