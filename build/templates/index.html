@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ site_title }}</title>
+  <script>
+    (function(){var t=localStorage.getItem('theme');if(t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.setAttribute('data-theme','dark');else document.documentElement.setAttribute('data-theme','light');})();
+  </script>
   <link rel="stylesheet" href="static/style.css">
   <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -354,33 +357,9 @@
       </div>
     </main>
 
-    <!-- Tooltip -->
-    <div class="tooltip" x-show="tooltip.visible" x-transition
-         :style="'left:' + tooltip.x + 'px; top:' + tooltip.y + 'px'">
-      <div class="tooltip-date" x-text="tooltip.date"></div>
-      <div x-show="tooltip.name" class="tooltip-name" x-text="tooltip.name"></div>
-      <div class="tooltip-status" :class="'text-' + tooltip.status" x-text="tooltip.status"></div>
-      <div x-show="tooltip.uptime !== null" class="tooltip-detail">
-        Uptime: <span x-text="tooltip.uptime"></span>%
-      </div>
-      <div x-show="tooltip.avgResp >= 0" class="tooltip-detail">
-        Avg response: <span x-text="tooltip.avgResp"></span> ms
-      </div>
-    </div>
+    {% include '_tooltip.html' %}
 
-    <footer>
-      <p>Unofficial · Not affiliated with Dify or LangGenius</p>
-      <p>Built by <a href="https://github.com/kurokobo">@kurokobo</a> with AI assistance · <a href="https://github.com/kurokobo/dify-status">Source on GitHub</a></p>
-      <div class="footer-support">
-        <a href="https://github.com/sponsors/kurokobo" class="sponsor-btn" target="_blank" rel="noopener">
-          <svg height="15" viewBox="0 0 16 16" fill="#c96198" style="vertical-align:middle;margin-right:5px;"><path d="M4.25 2.5c-1.336 0-2.75 1.164-2.75 3 0 2.15 1.58 4.144 3.365 5.682A20.565 20.565 0 008 13.393a20.561 20.561 0 003.135-2.211C12.92 9.644 14.5 7.65 14.5 5.5c0-1.836-1.414-3-2.75-3-1.373 0-2.609.986-3.029 2.456a.75.75 0 01-1.442 0C6.859 3.486 5.623 2.5 4.25 2.5z"/></svg>
-          Sponsor on GitHub
-        </a>
-        <a href="https://www.buymeacoffee.com/kurokobo" class="bmc-btn" target="_blank" rel="noopener">
-          <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height:45px;width:176px;border-radius:9px;">
-        </a>
-      </div>
-    </footer>
+    {% include '_footer.html' %}
   </div>
 
   <script>

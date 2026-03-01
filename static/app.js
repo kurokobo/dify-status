@@ -1,3 +1,62 @@
+/* ===== Theme Management ===== */
+const themeManager = {
+  _listeners: [],
+
+  getPreference() {
+    return localStorage.getItem('theme') || 'system';
+  },
+
+  _resolvedTheme() {
+    const pref = this.getPreference();
+    if (pref === 'light' || pref === 'dark') return pref;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  },
+
+  apply() {
+    const resolved = this._resolvedTheme();
+    document.documentElement.setAttribute('data-theme', resolved);
+    this._listeners.forEach(fn => fn(resolved));
+  },
+
+  set(mode) {
+    localStorage.setItem('theme', mode);
+    this.apply();
+  },
+
+  onChange(fn) {
+    this._listeners.push(fn);
+  },
+
+  init() {
+    this.apply();
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if (this.getPreference() === 'system') this.apply();
+    });
+  },
+};
+
+themeManager.init();
+
+function themeSwitcher() {
+  return {
+    current: themeManager.getPreference(),
+    set(mode) {
+      this.current = mode;
+      themeManager.set(mode);
+    },
+  };
+}
+
+function _getChartThemeColors() {
+  const style = getComputedStyle(document.documentElement);
+  return {
+    text: style.getPropertyValue('--color-text-secondary').trim(),
+    grid: style.getPropertyValue('--color-border').trim(),
+    up: style.getPropertyValue('--color-up').trim(),
+    down: style.getPropertyValue('--color-down').trim(),
+  };
+}
+
 function tooltipMixin() {
   return {
     tooltip: {
@@ -623,6 +682,12 @@ function detailApp() {
       this.$watch('showLocalTime', () => {
         this.hourLabelsDisplay = _computeHourLabels(this.showLocalTime);
       });
+      themeManager.onChange(() => {
+        if (this.dayRecords.length > 0) {
+          this._destroyCharts();
+          this.$nextTick(() => this.renderChart(this.dayRecords));
+        }
+      });
     },
 
     _destroyCharts() {
@@ -710,9 +775,8 @@ function detailApp() {
     },
 
     _updateOrCreateChart(key, canvas, labels, data, statuses, unit, chartLabel, xTitle) {
-      const colorUp = '#2da44e';
-      const colorDown = '#cf222e';
-      const pointColors = statuses.map(s => s === 'up' ? colorUp : colorDown);
+      const theme = _getChartThemeColors();
+      const pointColors = statuses.map(s => s === 'up' ? theme.up : theme.down);
       this[key] = new Chart(canvas, {
         type: 'line',
         data: {
@@ -720,13 +784,13 @@ function detailApp() {
           datasets: [{
             label: chartLabel,
             data,
-            borderColor: colorUp,
+            borderColor: theme.up,
             backgroundColor: 'rgba(45, 164, 78, 0.1)',
             spanGaps: true,
             segment: {
               borderColor: ctx => {
-                if (ctx.p0.skip || ctx.p1.skip) return colorDown;
-                return (statuses[ctx.p0DataIndex] !== 'up' || statuses[ctx.p1DataIndex] !== 'up') ? colorDown : colorUp;
+                if (ctx.p0.skip || ctx.p1.skip) return theme.down;
+                return (statuses[ctx.p0DataIndex] !== 'up' || statuses[ctx.p1DataIndex] !== 'up') ? theme.down : theme.up;
               },
               borderDash: ctx => (ctx.p0.skip || ctx.p1.skip) ? [5, 5] : [],
             },
@@ -745,12 +809,15 @@ function detailApp() {
           plugins: { legend: { display: false } },
           scales: {
             x: {
-              title: { display: true, text: xTitle },
-              ticks: { maxTicksLimit: 12 },
+              title: { display: true, text: xTitle, color: theme.text },
+              ticks: { maxTicksLimit: 12, color: theme.text },
+              grid: { color: theme.grid },
             },
             y: {
-              title: { display: true, text: unit },
+              title: { display: true, text: unit, color: theme.text },
               beginAtZero: true,
+              ticks: { color: theme.text },
+              grid: { color: theme.grid },
             },
           },
         },

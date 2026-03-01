@@ -1,0 +1,13 @@
+    <!-- Tooltip -->
+    <div class="tooltip" x-show="tooltip.visible" x-transition
+         :style="'left:' + tooltip.x + 'px; top:' + tooltip.y + 'px'">
+      <div class="tooltip-date" x-text="tooltip.date"></div>
+      <div x-show="tooltip.name" class="tooltip-name" x-text="tooltip.name"></div>
+      <div class="tooltip-status" :class="'text-' + tooltip.status" x-text="tooltip.status"></div>
+      <div x-show="tooltip.uptime !== null" class="tooltip-detail">
+        Uptime: <span x-text="tooltip.uptime"></span>%
+      </div>
+      <div x-show="tooltip.avgResp >= 0" class="tooltip-detail">
+        Avg response: <span x-text="tooltip.avgResp"></span> ms
+      </div>
+    </div>
