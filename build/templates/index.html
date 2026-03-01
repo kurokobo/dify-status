@@ -224,8 +224,10 @@
         </div>
         <div x-show="open" x-collapse>
           <div class="legend-criteria">
-            <p><strong>Overall:</strong> Up = all components Up; Degraded = &lt;50% of components were Down; Down = &ge;50% of components were Down</p>
-            <p><strong>Per component:</strong> Up = all checks passed; Degraded = &lt;50% of checks were down; Down = &ge;50% of checks were down</p>
+            <p><strong>Overall (per-day):</strong> Up = all components Up; Degraded = &lt;50% of time periods had downtime; Down = &ge;50% of time periods had downtime</p>
+            <p><strong>Overall (per-hour):</strong> Down if any component was Down; Degraded if any was Degraded; Up otherwise</p>
+            <p><strong>Per component (per-day):</strong> Up = all checks passed; Degraded = &lt;50% of checks were down; Down = &ge;50% of checks were down</p>
+            <p><strong>Per component (per-hour):</strong> Same as per-day, applied to checks within each hour</p>
           </div>
         </div>
       </div>
@@ -283,6 +285,19 @@
             <div class="check-header">
               <span class="check-name" x-text="hcheck.name"></span>
               <span class="check-status-badge" :class="'badge-' + hcheck.current_status" x-text="hcheck.current_status"></span>
+              <button x-show="hcheck.description || hcheck.note"
+                      class="info-toggle"
+                      @click.prevent.stop="toggleInfo(hcheck.id)"
+                      :aria-expanded="expandedChecks[hcheck.id] || false"
+                      aria-label="Toggle details">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8zm6.5-.25A.75.75 0 017.25 7h1a.75.75 0 01.75.75v2.75h.25a.75.75 0 010 1.5h-2a.75.75 0 010-1.5h.25v-2h-.25a.75.75 0 01-.75-.75zM8 6a1 1 0 100-2 1 1 0 000 2z"/>
+                </svg>
+              </button>
+            </div>
+            <div x-show="expandedChecks[hcheck.id]" x-collapse>
+              <p class="check-description" x-text="hcheck.description"></p>
+              <p x-show="hcheck.note" class="check-note" x-text="hcheck.note"></p>
             </div>
             <div class="grid-24">
               <template x-for="(h, idx) in hcheck.hours" :key="idx">
@@ -317,6 +332,19 @@
             <div class="check-header">
               <span class="check-name" x-text="mcheck.name"></span>
               <span class="check-status-badge" :class="'badge-' + mcheck.current_status" x-text="mcheck.current_status"></span>
+              <button x-show="mcheck.description || mcheck.note"
+                      class="info-toggle"
+                      @click.prevent.stop="toggleInfo(mcheck.id)"
+                      :aria-expanded="expandedChecks[mcheck.id] || false"
+                      aria-label="Toggle details">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8zm6.5-.25A.75.75 0 017.25 7h1a.75.75 0 01.75.75v2.75h.25a.75.75 0 010 1.5h-2a.75.75 0 010-1.5h.25v-2h-.25a.75.75 0 01-.75-.75zM8 6a1 1 0 100-2 1 1 0 000 2z"/>
+                </svg>
+              </button>
+            </div>
+            <div x-show="expandedChecks[mcheck.id]" x-collapse>
+              <p class="check-description" x-text="mcheck.description"></p>
+              <p x-show="mcheck.note" class="check-note" x-text="mcheck.note"></p>
             </div>
             <div class="multiday-grid">
               <template x-for="(day, dayIdx) in multiDaySlice(mcheck.days)" :key="day.date">

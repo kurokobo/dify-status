@@ -356,6 +356,8 @@ function statusApp() {
         allCheckMultiDay.push({
           id: check.id,
           name: check.name,
+          description: check.description,
+          note: check.note,
           current_status: check.current_status,
           latest_timestamp: check.latest_timestamp,
           latest_response_ms: check.latest_response_ms,
