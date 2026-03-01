@@ -2,7 +2,7 @@ settings:
   data_dir: data
   retention_days: 90
   site_title: "Dify Cloud Status (Unofficial)"
-  site_url: "https://kurokobo.github.io/dify-status"
+  site_url: "https://kurokobo.github.io/dify-status/"
   notification:
     github_repo: "kurokobo/dify-status"
     issue_number: 2

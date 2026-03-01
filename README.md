@@ -2,7 +2,7 @@
 
 An unofficial, independently operated status page for [Dify Cloud](https://cloud.dify.ai). Monitors service health via periodic checks, stores results as JSONL, builds a static site with a 90-day status grid, and deploys to GitHub Pages.
 
-**Live site:** https://kurokobo.github.io/dify-status
+**Live site:** https://kurokobo.github.io/dify-status/
 
 > **Disclaimer:** This project is not affiliated with, endorsed by, or supported by Dify or LangGenius in any way. This is a personal project in an early/alpha stage. Behavior, check configurations, and results may change at any time without prior notice. No guarantees are made regarding the accuracy or reliability of results. The project may be discontinued at any time.
 
