@@ -197,6 +197,61 @@ def build_detail_data(
     return dict(by_date)
 
 
+def _compute_ogp_hourly(
+    records: list[dict],
+    checks_config: list[dict],
+    dates: list[str],
+) -> list[dict]:
+    """Compute per-day, per-hour overall status for OGP (mirrors frontend 7D view)."""
+    check_ids = [c["id"] for c in checks_config]
+
+    # Group records by (check_id, date, hour)
+    by_check_date_hour: dict[str, dict[str, dict[int, list[str]]]] = defaultdict(
+        lambda: defaultdict(lambda: defaultdict(list))
+    )
+    for r in records:
+        ts = r["timestamp"]
+        date = ts[:10]
+        if date not in dates:
+            continue
+        hour = int(ts[11:13])
+        by_check_date_hour[r["check_id"]][date][hour].append(r["status"])
+
+    result = []
+    for date in dates:
+        hours = []
+        for h in range(24):
+            # Compute per-check status for this hour, then derive overall
+            check_statuses = []
+            for cid in check_ids:
+                statuses = by_check_date_hour[cid][date][h]
+                if not statuses:
+                    continue
+                down_count = statuses.count("down")
+                if down_count == 0:
+                    cs = "degraded" if "degraded" in statuses else "up"
+                elif down_count / len(statuses) >= 0.5:
+                    cs = "down"
+                else:
+                    cs = "degraded"
+                check_statuses.append(cs)
+
+            if not check_statuses:
+                status = "nodata"
+            elif any(s == "down" for s in check_statuses):
+                status = "down"
+            elif any(s == "degraded" for s in check_statuses):
+                status = "degraded"
+            else:
+                status = "up"
+            hours.append({"hour": h, "status": status})
+        # Format label as "Feb 24" style (matching frontend)
+        dt = datetime.strptime(date, "%Y-%m-%d")
+        label = dt.strftime("%b %d").replace(" 0", " ")
+        result.append({"date": date, "label": label, "hours": hours})
+    return result
+
+
 def build_site() -> None:
     config = load_config()
     settings = config["settings"]
@@ -307,11 +362,46 @@ def build_site() -> None:
             encoding="utf-8",
         )
 
+    # Render OGP image (SVG → PNG)
+    env_svg = Environment(
+        loader=FileSystemLoader(str(TEMPLATE_DIR)),
+        autoescape=False,
+        trim_blocks=True,
+        lstrip_blocks=True,
+    )
+    tmpl_ogp = env_svg.get_template("ogp.svg")
+    ogp_days = 7
+    ogp_dates = summary["dates"][-ogp_days:]
+    ogp_hourly = _compute_ogp_hourly(records, config["checks"], ogp_dates)
+    ogp_svg = tmpl_ogp.render(
+        site_title=site_title,
+        days=ogp_hourly,
+        num_checks=len(config["checks"]),
+    )
+    static_dst = SITE_DIR / "static"
+    static_dst.mkdir(parents=True, exist_ok=True)
+    ogp_svg_path = static_dst / "ogp.svg"
+    ogp_svg_path.write_text(ogp_svg, encoding="utf-8")
+
+    # Convert SVG to PNG using svglib
+    from reportlab.graphics import renderPM
+    from svglib.svglib import svg2rlg
+
+    drawing = svg2rlg(str(ogp_svg_path))
+    if drawing:
+        scale_x = 1200 / drawing.width
+        scale_y = 630 / drawing.height
+        drawing.width = 1200
+        drawing.height = 630
+        drawing.scale(scale_x, scale_y)
+        renderPM.drawToFile(drawing, str(static_dst / "ogp.png"), fmt="PNG")
+
+    ogp_svg_path.unlink()
+
     # Copy static files
     static_src = ROOT / "static"
-    static_dst = SITE_DIR / "static"
     if static_src.exists():
-        shutil.copytree(static_src, static_dst)
+        shutil.copytree(static_src, static_dst, dirs_exist_ok=True)
 
     print(f"Site built in {SITE_DIR}")
 
