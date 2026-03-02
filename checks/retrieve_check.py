@@ -5,7 +5,7 @@ import time
 
 import httpx
 
-from checks.base import BaseCheck, CheckResult, Status
+from checks.base import BaseCheck, CheckResult, Status, body_snippet, logger
 
 
 class RetrieveCheck(BaseCheck):
@@ -44,7 +44,7 @@ class RetrieveCheck(BaseCheck):
         url = f"{base_url}/datasets/{dataset_id}/retrieve"
 
         try:
-            print(f"  [{self.check_id}] POST {url}")
+            logger.info("[%s] POST %s", self.check_id, url)
             async with httpx.AsyncClient(
                 timeout=timeout, follow_redirects=True
             ) as client:
@@ -52,8 +52,8 @@ class RetrieveCheck(BaseCheck):
                 resp = await client.post(url, headers=headers, json=body)
                 elapsed_ms = int((time.monotonic() - start) * 1000)
 
-            body_snippet = resp.text[:200] if resp.text else "(empty)"
-            print(f"  [{self.check_id}] Response: HTTP {resp.status_code} ({elapsed_ms}ms), body: {body_snippet}")
+            content_type = resp.headers.get("content-type", "")
+            logger.info("[%s] Response: HTTP %d (%dms), body: %s", self.check_id, resp.status_code, elapsed_ms, body_snippet(resp.text, content_type))
 
             if resp.status_code != 200:
                 return self._result(
@@ -74,11 +74,11 @@ class RetrieveCheck(BaseCheck):
             )
 
         except httpx.TimeoutException:
-            print(f"  [{self.check_id}] Timeout after {timeout}s")
+            logger.warning("[%s] Timeout after %ds", self.check_id, timeout)
             return self._result(Status.DOWN, -1, "Timeout")
         except httpx.ConnectError as exc:
-            print(f"  [{self.check_id}] Connection error: {exc}")
+            logger.error("[%s] Connection error: %s", self.check_id, exc)
             return self._result(Status.DOWN, -1, f"Connection error: {exc}")
         except Exception as exc:
-            print(f"  [{self.check_id}] Error: {exc}")
+            logger.error("[%s] Error: %s", self.check_id, exc)
             return self._result(Status.DOWN, -1, f"Error: {exc}")

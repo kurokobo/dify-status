@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -15,6 +16,7 @@ from dotenv import load_dotenv
 from checks.registry import CHECK_TYPES
 
 ROOT = Path(__file__).resolve().parent.parent
+logger = logging.getLogger("checks")
 
 
 def load_config() -> dict:
@@ -23,6 +25,12 @@ def load_config() -> dict:
 
 
 async def run_checks() -> None:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
     load_dotenv(ROOT / ".env")
     config = load_config()
     settings = config["settings"]
@@ -37,36 +45,36 @@ async def run_checks() -> None:
         check_type = check_def["type"]
         cls = CHECK_TYPES.get(check_type)
         if cls is None:
-            print(f"Unknown check type: {check_type}", file=sys.stderr)
+            logger.error("Unknown check type: %s", check_type)
             continue
 
         check = cls(check_def)
-        print(f"[{check.check_id}] Running ({check_type})...")
+        logger.info("[%s] Running (%s)...", check.check_id, check_type)
         result = await check.run()
         if isinstance(result, list):
             results.extend(result)
             for r in result:
-                print(f"[{r.check_id}] Result: {r.status.value} ({r.message})")
+                logger.info("[%s] Result: %s (%s)", r.check_id, r.status.value, r.message)
             if not result:
-                print(f"[{check.check_id}] Result: (no result this cycle)")
+                logger.info("[%s] Result: (no result this cycle)", check.check_id)
         else:
             results.append(result)
-            print(f"[{result.check_id}] Result: {result.status.value} ({result.message})")
+            logger.info("[%s] Result: %s (%s)", result.check_id, result.status.value, result.message)
 
     with open(day_file, "a", encoding="utf-8") as f:
         for r in results:
             f.write(json.dumps(r.to_dict(), ensure_ascii=False) + "\n")
 
-    print(f"Wrote {len(results)} results to {day_file}")
+    logger.info("Wrote %d results to %s", len(results), day_file)
 
     # Fetch Dify version (independent of check results)
     version = await fetch_dify_version()
     version_file = data_dir / ".dify_version"
     if version:
         version_file.write_text(version, encoding="utf-8")
-        print(f"Dify version: {version}")
+        logger.info("Dify version: %s", version)
     else:
-        print("Failed to fetch Dify version")
+        logger.warning("Failed to fetch Dify version")
 
 
 async def fetch_dify_version(timeout: int = 10) -> str | None:

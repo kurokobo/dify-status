@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import enum
+import logging
 from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 from abc import ABC, abstractmethod
 from typing import Any
+
+logger = logging.getLogger("checks")
 
 
 class Status(str, enum.Enum):
@@ -26,6 +29,15 @@ class CheckResult:
         d = asdict(self)
         d["status"] = self.status.value
         return d
+
+
+def body_snippet(text: str, content_type: str = "") -> str:
+    """Return body text for logging: full for JSON, truncated for others."""
+    if not text:
+        return "(empty)"
+    if "json" in content_type:
+        return text
+    return text[:200] + ("..." if len(text) > 200 else "")
 
 
 class BaseCheck(ABC):

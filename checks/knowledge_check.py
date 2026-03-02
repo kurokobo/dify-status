@@ -9,7 +9,7 @@ from typing import Any
 
 import httpx
 
-from checks.base import BaseCheck, CheckResult, Status
+from checks.base import BaseCheck, CheckResult, Status, body_snippet, logger
 
 STATE_DIR = Path(__file__).resolve().parent.parent / "data" / ".knowledge_state"
 
@@ -83,10 +83,10 @@ class KnowledgeCheck(BaseCheck):
                 timeout=self.timeout, follow_redirects=True
             ) as client:
                 url = f"{self.base_url}/datasets/{dataset_id}/documents/{batch_id}/indexing-status"
-                print(f"  [{self.check_id}] GET {url}")
+                logger.info("[%s] GET %s (account_index=%d)", self.check_id, url, state.get("account_index", 0))
                 resp = await client.get(url, headers=self._headers(account))
-                body_snippet = resp.text[:200] if resp.text else "(empty)"
-                print(f"  [{self.check_id}] Response: HTTP {resp.status_code}, body: {body_snippet}")
+                content_type = resp.headers.get("content-type", "")
+                logger.info("[%s] Response: HTTP %d, body: %s", self.check_id, resp.status_code, body_snippet(resp.text, content_type))
 
                 if resp.status_code != 200:
                     await self._delete_document(client, account, dataset_id, document_id)
@@ -107,7 +107,7 @@ class KnowledgeCheck(BaseCheck):
                 doc_status = data[0]
                 indexing_status = doc_status.get("indexing_status", "")
 
-                print(f"  [{self.check_id}] Indexing status: {indexing_status}")
+                logger.info("[%s] Indexing status: %s", self.check_id, indexing_status)
 
                 if indexing_status == "completed":
                     started_at = doc_status.get("processing_started_at", 0)
@@ -136,11 +136,11 @@ class KnowledgeCheck(BaseCheck):
                     )
 
         except httpx.TimeoutException:
-            print(f"  [{self.check_id}] Timeout checking indexing status")
+            logger.warning("[%s] Timeout checking indexing status", self.check_id)
             return self._result(Status.DOWN, -1, "Timeout checking indexing status",
                                 timestamp=uploaded_at)
         except Exception as exc:
-            print(f"  [{self.check_id}] Error checking status: {exc}")
+            logger.error("[%s] Error checking status: %s", self.check_id, exc)
             return self._result(Status.DOWN, -1, f"Error checking status: {exc}",
                                 timestamp=uploaded_at)
 
@@ -166,10 +166,10 @@ class KnowledgeCheck(BaseCheck):
                 timeout=self.timeout, follow_redirects=True
             ) as client:
                 url = f"{self.base_url}/datasets/{dataset_id}/document/create-by-text"
-                print(f"  [{self.check_id}] POST {url} (account_index={account_index})")
+                logger.info("[%s] POST %s (account_index=%d)", self.check_id, url, account_index)
                 resp = await client.post(url, headers=self._headers(account), json=body)
-                body_snippet = resp.text[:200] if resp.text else "(empty)"
-                print(f"  [{self.check_id}] Response: HTTP {resp.status_code}, body: {body_snippet}")
+                content_type = resp.headers.get("content-type", "")
+                logger.info("[%s] Response: HTTP %d, body: %s", self.check_id, resp.status_code, body_snippet(resp.text, content_type))
 
                 if resp.status_code != 200:
                     return self._result(
@@ -203,10 +203,10 @@ class KnowledgeCheck(BaseCheck):
                 return result
 
         except httpx.TimeoutException:
-            print(f"  [{self.check_id}] Upload timeout")
+            logger.warning("[%s] Upload timeout", self.check_id)
             return self._result(Status.DOWN, -1, "Upload timeout")
         except Exception as exc:
-            print(f"  [{self.check_id}] Upload failed: {exc}")
+            logger.error("[%s] Upload failed: %s", self.check_id, exc)
             return self._result(Status.DOWN, -1, f"Upload failed: {exc}")
 
     async def _delete_document(
@@ -219,8 +219,8 @@ class KnowledgeCheck(BaseCheck):
         """Best-effort delete of the document."""
         try:
             url = f"{self.base_url}/datasets/{dataset_id}/documents/{document_id}"
-            print(f"  [{self.check_id}] DELETE {url}")
+            logger.info("[%s] DELETE %s", self.check_id, url)
             resp = await client.delete(url, headers=self._headers(account))
-            print(f"  [{self.check_id}] Delete response: HTTP {resp.status_code}")
+            logger.info("[%s] Delete response: HTTP %d", self.check_id, resp.status_code)
         except Exception as exc:
-            print(f"  [{self.check_id}] Delete failed (best-effort): {exc}")
+            logger.warning("[%s] Delete failed (best-effort): %s", self.check_id, exc)

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
@@ -14,6 +15,8 @@ ROOT = Path(__file__).resolve().parent.parent
 STATE_FILE = ROOT / "data" / ".incident_state.json"
 
 DEFAULT_FAILURE_THRESHOLD = 2
+
+logger = logging.getLogger("checks")
 
 
 def load_config() -> dict:
@@ -94,7 +97,7 @@ def post_issue_comment(repo: str, issue_number: int, body: str) -> bool:
         )
         return True
     except (subprocess.CalledProcessError, FileNotFoundError) as e:
-        print(f"Failed to post issue comment: {e}", file=sys.stderr)
+        logger.error("Failed to post issue comment: %s", e)
         return False
 
 
@@ -103,6 +106,12 @@ def is_healthy(status: str) -> bool:
 
 
 def run_notify() -> None:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
     config = load_config()
     settings = config["settings"]
     data_dir = ROOT / settings["data_dir"]
@@ -111,7 +120,7 @@ def run_notify() -> None:
     repo = notification.get("github_repo", "")
     issue_number = notification.get("issue_number", 0)
     if not repo or not issue_number:
-        print("Notification not configured (missing github_repo or issue_number in settings.notification)")
+        logger.info("Notification not configured (missing github_repo or issue_number in settings.notification)")
         return
 
     failure_threshold = notification.get("failure_threshold", DEFAULT_FAILURE_THRESHOLD)
@@ -120,7 +129,7 @@ def run_notify() -> None:
     latest = get_latest_results(data_dir)
 
     if not latest:
-        print("No results found for today or yesterday")
+        logger.warning("No results found for today or yesterday")
         return
 
     incidents: list[str] = []
@@ -186,13 +195,13 @@ def run_notify() -> None:
         if ongoing:
             lines += ["", "🟡 Ongoing issues:"] + [f"- **{name}**" for name in ongoing]
         body = "\n".join(lines)
-        print(f"Posting status update comment:\n{body}")
+        logger.info("Posting status update comment:\n%s", body)
         post_issue_comment(repo, issue_number, body)
     elif incidents:
         body = f"🔴 **Incident detected** — {now_str}\n\n" + "\n".join(incidents)
         if ongoing:
             body += "\n\n🟡 Ongoing issues:\n" + "\n".join(f"- **{name}**" for name in ongoing)
-        print(f"Posting incident comment:\n{body}")
+        logger.info("Posting incident comment:\n%s", body)
         post_issue_comment(repo, issue_number, body)
     elif recoveries:
         if ongoing:
@@ -200,10 +209,10 @@ def run_notify() -> None:
             body = "\n".join(lines)
         else:
             body = f"🟢 **Recovered** — {now_str}\n\n" + "\n".join(recoveries)
-        print(f"Posting recovery comment:\n{body}")
+        logger.info("Posting recovery comment:\n%s", body)
         post_issue_comment(repo, issue_number, body)
     else:
-        print("No status transitions detected")
+        logger.info("No status transitions detected")
 
 
 def main() -> None:
