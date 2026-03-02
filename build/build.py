@@ -252,6 +252,93 @@ def _compute_ogp_hourly(
     return result
 
 
+def _render_ogp_png(
+    site_title: str,
+    days: list[dict],
+    out_path: Path,
+) -> None:
+    """Render OGP image directly with Pillow (no C dependencies)."""
+    from PIL import Image, ImageDraw, ImageFont
+
+    W, H = 1200, 630
+    CELL = 38
+    GAP = 4
+    PITCH = CELL + GAP
+    NUM_COLS = 24
+    num_rows = len(days)
+    GRID_W = NUM_COLS * PITCH - GAP
+    LABEL_W = 40
+    GRID_X = int((W - LABEL_W - 8 - GRID_W) / 2 + LABEL_W + 8)
+    LABEL_X = GRID_X - 8
+    GRID_Y = 240
+    ACCENT = "#0033ff"
+    COLORS = {"up": "#2da44e", "degraded": "#d4a017", "down": "#cf222e", "nodata": "#d0d7de"}
+
+    img = Image.new("RGB", (W, H), "#f5f5f5")
+    draw = ImageDraw.Draw(img)
+
+    # Try to load a nice font, fall back to default
+    def _font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+        names = ["DejaVuSans-Bold.ttf", "DejaVuSans.ttf"] if bold else ["DejaVuSans.ttf"]
+        for name in names:
+            try:
+                return ImageFont.truetype(name, size)
+            except OSError:
+                continue
+        return ImageFont.load_default(size)
+
+    font_title = _font(64, bold=True)
+    font_section = _font(22, bold=True)
+    font_label = _font(16)
+    font_hour = _font(14)
+
+    # Top accent line
+    draw.rectangle([0, 0, W, 6], fill=ACCENT)
+    # Bottom accent line
+    draw.rectangle([0, H - 6, W, H], fill=ACCENT)
+
+    # Title (centered)
+    bbox = draw.textbbox((0, 0), site_title, font=font_title)
+    tw = bbox[2] - bbox[0]
+    draw.text(((W - tw) / 2, 130 - 64), site_title, fill=ACCENT, font=font_title)
+
+    # Section label
+    section = f"Overall status for cloud.dify.ai -- Last {num_rows} days (UTC)"
+    bbox = draw.textbbox((0, 0), section, font=font_section)
+    tw = bbox[2] - bbox[0]
+    draw.text(((W - tw) / 2, 185 - 22), section, fill="#1f2328", font=font_section)
+
+    # Day rows
+    for row_idx, day in enumerate(days):
+        row_y = GRID_Y + row_idx * PITCH
+
+        # Date label (right-aligned)
+        bbox = draw.textbbox((0, 0), day["label"], font=font_label)
+        lw = bbox[2] - bbox[0]
+        lh = bbox[3] - bbox[1]
+        draw.text((LABEL_X - lw, row_y + (CELL - lh) / 2), day["label"], fill="#656d76", font=font_label)
+
+        # Hour cells
+        for col_idx, h in enumerate(day["hours"]):
+            col_x = GRID_X + col_idx * PITCH
+            draw.rounded_rectangle(
+                [col_x, row_y, col_x + CELL, row_y + CELL],
+                radius=4,
+                fill=COLORS[h["status"]],
+            )
+
+    # Hour labels below grid
+    hour_label_y = GRID_Y + num_rows * PITCH + 4
+    for h in [0, 6, 12, 18, 23]:
+        label = f"{h}:00"
+        hx = GRID_X + h * PITCH + CELL / 2
+        bbox = draw.textbbox((0, 0), label, font=font_hour)
+        lw = bbox[2] - bbox[0]
+        draw.text((hx - lw / 2, hour_label_y), label, fill="#8b949e", font=font_hour)
+
+    img.save(str(out_path), "PNG")
+
+
 def build_site() -> None:
     config = load_config()
     settings = config["settings"]
@@ -362,41 +449,13 @@ def build_site() -> None:
             encoding="utf-8",
         )
 
-    # Render OGP image (SVG → PNG)
-    env_svg = Environment(
-        loader=FileSystemLoader(str(TEMPLATE_DIR)),
-        autoescape=False,
-        trim_blocks=True,
-        lstrip_blocks=True,
-    )
-    tmpl_ogp = env_svg.get_template("ogp.svg")
+    # Render OGP image (Pillow direct drawing)
     ogp_days = 7
     ogp_dates = summary["dates"][-ogp_days:]
     ogp_hourly = _compute_ogp_hourly(records, config["checks"], ogp_dates)
-    ogp_svg = tmpl_ogp.render(
-        site_title=site_title,
-        days=ogp_hourly,
-        num_checks=len(config["checks"]),
-    )
     static_dst = SITE_DIR / "static"
     static_dst.mkdir(parents=True, exist_ok=True)
-    ogp_svg_path = static_dst / "ogp.svg"
-    ogp_svg_path.write_text(ogp_svg, encoding="utf-8")
-
-    # Convert SVG to PNG using svglib
-    from reportlab.graphics import renderPM
-    from svglib.svglib import svg2rlg
-
-    drawing = svg2rlg(str(ogp_svg_path))
-    if drawing:
-        scale_x = 1200 / drawing.width
-        scale_y = 630 / drawing.height
-        drawing.width = 1200
-        drawing.height = 630
-        drawing.scale(scale_x, scale_y)
-        renderPM.drawToFile(drawing, str(static_dst / "ogp.png"), fmt="PNG")
-
-    ogp_svg_path.unlink()
+    _render_ogp_png(site_title, ogp_hourly, static_dst / "ogp.png")
 
     # Copy static files
     static_src = ROOT / "static"
