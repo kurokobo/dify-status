@@ -565,3 +565,14 @@
 {"check_id": "webhook_free", "timestamp": "2026-03-02T10:49:33Z", "status": "up", "response_time_ms": -1, "message": "Triggered, will check execution status in the next cycle", "provisional": true}
 {"check_id": "webhook_pro", "timestamp": "2026-03-02T10:35:37Z", "status": "up", "response_time_ms": 93, "message": "Processed", "provisional": false}
 {"check_id": "webhook_pro", "timestamp": "2026-03-02T10:50:02Z", "status": "up", "response_time_ms": -1, "message": "Triggered, will check execution status in the next cycle", "provisional": true}
+{"check_id": "web_ui", "timestamp": "2026-03-02T11:00:44Z", "status": "up", "response_time_ms": 506, "message": "HTTP 200", "provisional": false}
+{"check_id": "api", "timestamp": "2026-03-02T11:01:44Z", "status": "down", "response_time_ms": 60206, "message": "HTTP 200, body read failed: RemoteProtocolError: peer closed connection without sending complete message body (incomplete chunked read)", "provisional": false}
+{"check_id": "sandbox", "timestamp": "2026-03-02T11:02:56Z", "status": "down", "response_time_ms": 72151, "message": "HTTP 200, body read failed: RemoteProtocolError: peer closed connection without sending complete message body (incomplete chunked read)", "provisional": false}
+{"check_id": "plugin", "timestamp": "2026-03-02T11:04:08Z", "status": "down", "response_time_ms": 72188, "message": "HTTP 200, body read failed: RemoteProtocolError: peer closed connection without sending complete message body (incomplete chunked read)", "provisional": false}
+{"check_id": "retrieve", "timestamp": "2026-03-02T11:04:20Z", "status": "down", "response_time_ms": 12201, "message": "HTTP 500 (expected 200)", "provisional": false}
+{"check_id": "indexing_free", "timestamp": "2026-03-02T11:04:34Z", "status": "down", "response_time_ms": -1, "message": "Upload failed: HTTP 500", "provisional": false}
+{"check_id": "indexing_pro", "timestamp": "2026-03-02T11:04:46Z", "status": "down", "response_time_ms": -1, "message": "Upload failed: HTTP 500", "provisional": false}
+{"check_id": "webhook_free", "timestamp": "2026-03-02T10:49:33Z", "status": "up", "response_time_ms": 92, "message": "Processed", "provisional": false}
+{"check_id": "webhook_free", "timestamp": "2026-03-02T11:04:47Z", "status": "up", "response_time_ms": -1, "message": "Triggered, will check execution status in the next cycle", "provisional": true}
+{"check_id": "webhook_pro", "timestamp": "2026-03-02T10:50:02Z", "status": "up", "response_time_ms": 92, "message": "Processed", "provisional": false}
+{"check_id": "webhook_pro", "timestamp": "2026-03-02T11:05:06Z", "status": "up", "response_time_ms": -1, "message": "Triggered, will check execution status in the next cycle", "provisional": true}
