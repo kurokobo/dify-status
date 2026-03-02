@@ -463,3 +463,16 @@
 {"check_id": "webhook_free", "timestamp": "2026-03-02T08:48:38Z", "status": "up", "response_time_ms": -1, "message": "Triggered, will check execution status in the next cycle", "provisional": true}
 {"check_id": "webhook_pro", "timestamp": "2026-03-02T08:33:47Z", "status": "up", "response_time_ms": 95, "message": "Processed", "provisional": false}
 {"check_id": "webhook_pro", "timestamp": "2026-03-02T08:48:42Z", "status": "up", "response_time_ms": -1, "message": "Triggered, will check execution status in the next cycle", "provisional": true}
+{"check_id": "web_ui", "timestamp": "2026-03-02T09:00:41Z", "status": "up", "response_time_ms": 990, "message": "HTTP 200", "provisional": false}
+{"check_id": "api", "timestamp": "2026-03-02T09:01:42Z", "status": "down", "response_time_ms": -1, "message": "Error: peer closed connection without sending complete message body (incomplete chunked read)", "provisional": false}
+{"check_id": "sandbox", "timestamp": "2026-03-02T09:02:42Z", "status": "down", "response_time_ms": -1, "message": "Error: peer closed connection without sending complete message body (incomplete chunked read)", "provisional": false}
+{"check_id": "plugin", "timestamp": "2026-03-02T09:03:42Z", "status": "down", "response_time_ms": -1, "message": "Error: peer closed connection without sending complete message body (incomplete chunked read)", "provisional": false}
+{"check_id": "retrieve", "timestamp": "2026-03-02T09:03:54Z", "status": "up", "response_time_ms": 12112, "message": "HTTP 200", "provisional": false}
+{"check_id": "indexing_free", "timestamp": "2026-03-02T08:48:30Z", "status": "up", "response_time_ms": 0, "message": "Completed", "provisional": false}
+{"check_id": "indexing_free", "timestamp": "2026-03-02T09:03:55Z", "status": "up", "response_time_ms": -1, "message": "Uploaded, will check indexing status in the next cycle", "provisional": true}
+{"check_id": "indexing_pro", "timestamp": "2026-03-02T08:48:32Z", "status": "up", "response_time_ms": 2000, "message": "Completed", "provisional": false}
+{"check_id": "indexing_pro", "timestamp": "2026-03-02T09:03:56Z", "status": "up", "response_time_ms": -1, "message": "Uploaded, will check indexing status in the next cycle", "provisional": true}
+{"check_id": "webhook_free", "timestamp": "2026-03-02T08:48:38Z", "status": "up", "response_time_ms": 179, "message": "Processed", "provisional": false}
+{"check_id": "webhook_free", "timestamp": "2026-03-02T09:04:03Z", "status": "up", "response_time_ms": -1, "message": "Triggered, will check execution status in the next cycle", "provisional": true}
+{"check_id": "webhook_pro", "timestamp": "2026-03-02T08:48:42Z", "status": "up", "response_time_ms": 135, "message": "Processed", "provisional": false}
+{"check_id": "webhook_pro", "timestamp": "2026-03-02T09:04:05Z", "status": "up", "response_time_ms": -1, "message": "Triggered, will check execution status in the next cycle", "provisional": true}
