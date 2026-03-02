@@ -32,7 +32,18 @@
         Last checked: <span x-text="formatTimestamp(summary.last_checked)"></span>
       </p>
       <p class="last-checked" x-show="summary.dify_version">
-        Dify version at last check: <span x-text="summary.dify_version"></span>
+        Dify version at last check:
+        <span class="version-history-wrapper" x-data="{ open: false }" @click.outside="open = false" @mouseleave="open = false">
+          <span class="version-history-trigger" @click="open = !open" @mouseenter="open = true" x-text="summary.dify_version"></span>
+          <span class="version-history-popup" x-show="open" x-transition @click.stop>
+            <template x-for="(entry, i) in (summary.dify_version_history || [])" :key="i">
+              <span class="version-history-row">
+                <span class="version-history-ver" x-text="entry.version"></span>
+                <span class="version-history-since" x-text="'since ' + formatTimestamp(entry.since)"></span>
+              </span>
+            </template>
+          </span>
+        </span>
       </p>
     </header>
 

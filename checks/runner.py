@@ -71,10 +71,30 @@ async def run_checks() -> None:
     version = await fetch_dify_version()
     version_file = data_dir / ".dify_version"
     if version:
+        # Check if version changed and update history
+        old_version = version_file.read_text(encoding="utf-8").strip() if version_file.exists() else None
+        if old_version != version:
+            _append_version_history(data_dir, version, now)
+            logger.info("Dify version changed: %s -> %s", old_version, version)
+
         version_file.write_text(version, encoding="utf-8")
         logger.info("Dify version: %s", version)
     else:
         logger.warning("Failed to fetch Dify version")
+
+
+def _append_version_history(data_dir: Path, version: str, now: datetime) -> None:
+    """Prepend a new entry to the version history file."""
+    history_file = data_dir / ".dify_version_history.json"
+    history: list[dict] = []
+    if history_file.exists():
+        try:
+            history = json.loads(history_file.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, ValueError):
+            pass
+    entry = {"version": version, "since": now.strftime("%Y-%m-%dT%H:%M:%SZ")}
+    history.insert(0, entry)
+    history_file.write_text(json.dumps(history, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 async def fetch_dify_version(timeout: int = 10) -> str | None:

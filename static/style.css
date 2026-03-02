@@ -219,6 +219,11 @@ h1 {
 .last-checked {
   color: var(--color-text-secondary);
   font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.last-checked + .overall-status {
+  margin-top: 0.5rem;
 }
 
 /* ===== Check rows ===== */
@@ -891,4 +896,55 @@ footer a:hover {
   background: var(--theme-switcher-active-bg);
   color: var(--theme-switcher-active-icon);
   box-shadow: 0 1px 2px var(--color-shadow);
+}
+
+/* ===== Version History Popup ===== */
+.version-history-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.version-history-trigger {
+  cursor: pointer;
+  border-bottom: 1px dashed var(--color-text-secondary);
+  transition: color 0.15s;
+}
+
+.version-history-trigger:hover {
+  color: var(--color-text);
+}
+
+.version-history-popup {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background: var(--tooltip-bg);
+  color: var(--tooltip-text);
+  border-radius: 6px;
+  padding: 0.5rem 0;
+  font-size: 0.8rem;
+  z-index: 100;
+  white-space: nowrap;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 2px 8px var(--color-shadow);
+  display: flex;
+  flex-direction: column;
+}
+
+.version-history-row {
+  display: flex;
+  gap: 1rem;
+  padding: 0.25rem 0.75rem;
+  align-items: baseline;
+}
+
+.version-history-ver {
+  font-weight: 600;
+  min-width: 4em;
+}
+
+.version-history-since {
+  color: var(--tooltip-secondary);
+  font-size: 0.75rem;
 }

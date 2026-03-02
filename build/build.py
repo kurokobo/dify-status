@@ -357,6 +357,18 @@ def build_site() -> None:
         dify_version = version_file.read_text(encoding="utf-8").strip()
     summary["dify_version"] = dify_version
 
+    # Read Dify version history
+    version_history_file = data_dir / ".dify_version_history.json"
+    dify_version_history: list[dict] = []
+    if version_history_file.exists():
+        try:
+            dify_version_history = json.loads(
+                version_history_file.read_text(encoding="utf-8")
+            )
+        except (json.JSONDecodeError, ValueError):
+            pass
+    summary["dify_version_history"] = dify_version_history
+
     # Prepare output
     if SITE_DIR.exists():
         shutil.rmtree(SITE_DIR)
@@ -406,6 +418,8 @@ def build_site() -> None:
             check_summary=check_summary,
             check_summary_json=json.dumps(check_summary, ensure_ascii=False),
             dify_version=dify_version,
+            dify_version_history_json=json.dumps(dify_version_history, ensure_ascii=False),
+            last_checked=summary.get("last_checked", ""),
         )
         (detail_dir / f"{cid}.html").write_text(detail_html, encoding="utf-8")
 
