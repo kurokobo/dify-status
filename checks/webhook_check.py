@@ -85,7 +85,10 @@ class WebhookCheck(BaseCheck):
             ) as client:
                 # Search logs by trigger_id using keyword parameter (1 API call)
                 url = f"{self.base_url}/workflows/logs?keyword={trigger_id}&limit=1"
+                print(f"  [{self.check_id}] GET {url}")
                 resp = await client.get(url, headers=self._api_headers(account))
+                body_snippet = resp.text[:200] if resp.text else "(empty)"
+                print(f"  [{self.check_id}] Response: HTTP {resp.status_code}, body: {body_snippet}")
 
                 if resp.status_code != 200:
                     return self._result(
@@ -104,6 +107,7 @@ class WebhookCheck(BaseCheck):
 
                 workflow_run = logs[0].get("workflow_run", {})
                 status = workflow_run.get("status", "")
+                print(f"  [{self.check_id}] Workflow run status: {status}")
 
                 if status == "succeeded":
                     elapsed = workflow_run.get("elapsed_time", 0)
@@ -128,9 +132,11 @@ class WebhookCheck(BaseCheck):
                     )
 
         except httpx.TimeoutException:
+            print(f"  [{self.check_id}] Timeout checking workflow logs")
             return self._result(Status.DOWN, -1, "Timeout checking workflow logs",
                                 timestamp=triggered_at)
         except Exception as exc:
+            print(f"  [{self.check_id}] Error checking status: {exc}")
             return self._result(Status.DOWN, -1, f"Error checking status: {exc}",
                                 timestamp=triggered_at)
 
@@ -147,16 +153,21 @@ class WebhookCheck(BaseCheck):
         }
 
         try:
+            trigger_url = self._trigger_full_url(account)
+            print(f"  [{self.check_id}] POST {trigger_url} (account_index={account_index}, trigger_id={trigger_id})")
             async with httpx.AsyncClient(
                 timeout=self.timeout, follow_redirects=True
             ) as client:
                 start = time.monotonic()
                 resp = await client.post(
-                    self._trigger_full_url(account),
+                    trigger_url,
                     json=body,
                     headers={"Content-Type": "application/json"},
                 )
                 elapsed_ms = int((time.monotonic() - start) * 1000)
+
+                body_snippet = resp.text[:200] if resp.text else "(empty)"
+                print(f"  [{self.check_id}] Response: HTTP {resp.status_code} ({elapsed_ms}ms), body: {body_snippet}")
 
                 if resp.status_code != 200:
                     return self._result(
@@ -178,6 +189,8 @@ class WebhookCheck(BaseCheck):
                 return result
 
         except httpx.TimeoutException:
+            print(f"  [{self.check_id}] Webhook trigger timeout")
             return self._result(Status.DOWN, -1, "Webhook trigger timeout")
         except Exception as exc:
+            print(f"  [{self.check_id}] Webhook trigger failed: {exc}")
             return self._result(Status.DOWN, -1, f"Webhook trigger failed: {exc}")

@@ -35,6 +35,7 @@ class HttpCheck(BaseCheck):
             }
 
         try:
+            print(f"  [{self.check_id}] {method} {url}")
             async with httpx.AsyncClient(
                 timeout=timeout, follow_redirects=True
             ) as client:
@@ -43,6 +44,9 @@ class HttpCheck(BaseCheck):
                     method, url, headers=headers, json=json_body
                 )
                 elapsed_ms = int((time.monotonic() - start) * 1000)
+
+            body_snippet = resp.text[:200] if resp.text else "(empty)"
+            print(f"  [{self.check_id}] Response: HTTP {resp.status_code} ({elapsed_ms}ms), body: {body_snippet}")
 
             if resp.status_code == expected_status:
                 if expected_body:
@@ -62,8 +66,11 @@ class HttpCheck(BaseCheck):
                 Status.DOWN, elapsed_ms, f"HTTP {resp.status_code} (expected {expected_status})"
             )
         except httpx.TimeoutException:
+            print(f"  [{self.check_id}] Timeout after {timeout}s")
             return self._result(Status.DOWN, -1, "Timeout")
         except httpx.ConnectError as exc:
+            print(f"  [{self.check_id}] Connection error: {exc}")
             return self._result(Status.DOWN, -1, f"Connection error: {exc}")
         except Exception as exc:
+            print(f"  [{self.check_id}] Error: {exc}")
             return self._result(Status.DOWN, -1, f"Error: {exc}")

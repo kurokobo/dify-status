@@ -44,12 +44,16 @@ class RetrieveCheck(BaseCheck):
         url = f"{base_url}/datasets/{dataset_id}/retrieve"
 
         try:
+            print(f"  [{self.check_id}] POST {url}")
             async with httpx.AsyncClient(
                 timeout=timeout, follow_redirects=True
             ) as client:
                 start = time.monotonic()
                 resp = await client.post(url, headers=headers, json=body)
                 elapsed_ms = int((time.monotonic() - start) * 1000)
+
+            body_snippet = resp.text[:200] if resp.text else "(empty)"
+            print(f"  [{self.check_id}] Response: HTTP {resp.status_code} ({elapsed_ms}ms), body: {body_snippet}")
 
             if resp.status_code != 200:
                 return self._result(
@@ -70,8 +74,11 @@ class RetrieveCheck(BaseCheck):
             )
 
         except httpx.TimeoutException:
+            print(f"  [{self.check_id}] Timeout after {timeout}s")
             return self._result(Status.DOWN, -1, "Timeout")
         except httpx.ConnectError as exc:
+            print(f"  [{self.check_id}] Connection error: {exc}")
             return self._result(Status.DOWN, -1, f"Connection error: {exc}")
         except Exception as exc:
+            print(f"  [{self.check_id}] Error: {exc}")
             return self._result(Status.DOWN, -1, f"Error: {exc}")

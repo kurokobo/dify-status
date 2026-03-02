@@ -40,16 +40,17 @@ async def run_checks() -> None:
             continue
 
         check = cls(check_def)
+        print(f"[{check.check_id}] Running ({check_type})...")
         result = await check.run()
         if isinstance(result, list):
             results.extend(result)
             for r in result:
-                print(f"  {r.check_id}: {r.status.value} ({r.message})")
+                print(f"[{r.check_id}] Result: {r.status.value} ({r.message})")
             if not result:
-                print(f"  {check.check_id}: (no result this cycle)")
+                print(f"[{check.check_id}] Result: (no result this cycle)")
         else:
             results.append(result)
-            print(f"  {result.check_id}: {result.status.value} ({result.message})")
+            print(f"[{result.check_id}] Result: {result.status.value} ({result.message})")
 
     with open(day_file, "a", encoding="utf-8") as f:
         for r in results:
