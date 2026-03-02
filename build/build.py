@@ -208,6 +208,13 @@ def build_site() -> None:
     records = load_all_data(data_dir)
     summary = build_summary(records, config["checks"], retention_days)
 
+    # Read Dify version
+    version_file = data_dir / ".dify_version"
+    dify_version = ""
+    if version_file.exists():
+        dify_version = version_file.read_text(encoding="utf-8").strip()
+    summary["dify_version"] = dify_version
+
     # Prepare output
     if SITE_DIR.exists():
         shutil.rmtree(SITE_DIR)
@@ -256,6 +263,7 @@ def build_site() -> None:
             check=check_def,
             check_summary=check_summary,
             check_summary_json=json.dumps(check_summary, ensure_ascii=False),
+            dify_version=dify_version,
         )
         (detail_dir / f"{cid}.html").write_text(detail_html, encoding="utf-8")
 

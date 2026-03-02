@@ -8,6 +8,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+import httpx
 import yaml
 from dotenv import load_dotenv
 
@@ -57,6 +58,27 @@ async def run_checks() -> None:
             f.write(json.dumps(r.to_dict(), ensure_ascii=False) + "\n")
 
     print(f"Wrote {len(results)} results to {day_file}")
+
+    # Fetch Dify version (independent of check results)
+    version = await fetch_dify_version()
+    version_file = data_dir / ".dify_version"
+    if version:
+        version_file.write_text(version, encoding="utf-8")
+        print(f"Dify version: {version}")
+    else:
+        print("Failed to fetch Dify version")
+
+
+async def fetch_dify_version(timeout: int = 10) -> str | None:
+    """Fetch the current Dify Cloud version from the x-version response header."""
+    url = "https://cloud.dify.ai/console/api/system-features"
+    try:
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            resp = await client.get(url)
+            version = resp.headers.get("x-version")
+            return version if version else None
+    except Exception:
+        return None
 
 
 def main() -> None:

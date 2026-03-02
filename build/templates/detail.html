@@ -20,6 +20,7 @@
       <h1>{{ check.name }}</h1>
       <p class="check-description">{{ check.description }}</p>
       {% if check.note %}<p class="check-note">{{ check.note }}</p>{% endif %}
+      {% if dify_version %}<p class="last-checked">Dify version: {{ dify_version }}</p>{% endif %}
       <div class="overall-status" :class="'status-banner-' + checkSummary.current_status">
         <span x-text="checkSummary.current_status"></span>
       </div>
