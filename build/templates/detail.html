@@ -33,7 +33,17 @@
       <p class="check-description">{{ check.description }}</p>
       {% if check.note %}<p class="check-note">{{ check.note }}</p>{% endif %}
       {% if last_checked %}
-      <p class="last-checked">Last checked: <span x-text="formatTimestamp('{{ last_checked }}')"></span></p>
+      <p class="last-checked" x-data="{ open: false }" @click.outside="open = false" @mouseleave="open = false">
+        Last checked:
+        <span class="freshness-wrapper">
+          <span class="freshness-trigger" :class="relativeTimeClass('{{ last_checked }}')" @click="open = !open" @mouseenter="open = true" x-text="formatRelativeTime('{{ last_checked }}')"></span>
+          <span class="freshness-note" x-text="freshnessNote('{{ last_checked }}')"></span>
+          <span class="freshness-popup" x-show="open" x-transition @click.stop>
+            <span class="freshness-popup-row" x-text="formatTimestampUtc('{{ last_checked }}')"></span>
+            <span class="freshness-popup-row" x-show="new Date().getTimezoneOffset() !== 0" x-text="formatTimestampLocal('{{ last_checked }}')"></span>
+          </span>
+        </span>
+      </p>
       {% endif %}
       {% if dify_version %}
       <script>var VERSION_HISTORY = {{ dify_version_history_json | safe }};</script>

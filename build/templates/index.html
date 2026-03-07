@@ -29,7 +29,15 @@
     <header>
       <h1>{{ site_title }}</h1>
       <p class="last-checked" x-show="summary.last_checked">
-        Last checked: <span x-text="formatTimestamp(summary.last_checked)"></span>
+        Last checked:
+        <span class="freshness-wrapper" x-data="{ open: false }" @click.outside="open = false" @mouseleave="open = false">
+          <span class="freshness-trigger" :class="relativeTimeClass(summary.last_checked)" @click="open = !open" @mouseenter="open = true" x-text="formatRelativeTime(summary.last_checked)"></span>
+          <span class="freshness-note" x-text="freshnessNote(summary.last_checked)"></span>
+          <span class="freshness-popup" x-show="open" x-transition @click.stop>
+            <span class="freshness-popup-row" x-text="formatTimestampUtc(summary.last_checked)"></span>
+            <span class="freshness-popup-row" x-show="new Date().getTimezoneOffset() !== 0" x-text="formatTimestampLocal(summary.last_checked)"></span>
+          </span>
+        </span>
       </p>
       <p class="last-checked" x-show="summary.dify_version">
         Dify version at last check:

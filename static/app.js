@@ -123,6 +123,64 @@ function tooltipMixin() {
       const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
       return `${utc} (${timeStr} ${_computeTzLabel()})`;
     },
+
+    formatTimestampUtc(ts) {
+      if (!ts) return '';
+      return ts.substring(0, 16).replace('T', ' ') + ' UTC';
+    },
+
+    formatTimestampLocal(ts) {
+      if (!ts) return '';
+      const d = new Date(ts);
+      const dateStr = [
+        d.getFullYear(),
+        String(d.getMonth() + 1).padStart(2, '0'),
+        String(d.getDate()).padStart(2, '0'),
+      ].join('-');
+      const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+      return `${dateStr} ${timeStr} ${_computeTzLabel()}`;
+    },
+
+    formatRelativeTime(ts) {
+      if (!ts) return '';
+      const now = Date.now();
+      const then = new Date(ts).getTime();
+      let diff = Math.floor((now - then) / 1000);
+      if (diff < 0) diff = 0;
+      const days = Math.floor(diff / 86400);
+      const hours = Math.floor((diff % 86400) / 3600);
+      const minutes = Math.floor((diff % 3600) / 60);
+      if (days > 0) {
+        return hours > 0
+          ? `${days} day${days !== 1 ? 's' : ''} ${hours} hour${hours !== 1 ? 's' : ''} ago`
+          : `${days} day${days !== 1 ? 's' : ''} ago`;
+      }
+      if (hours > 0) {
+        return minutes > 0
+          ? `${hours} hour${hours !== 1 ? 's' : ''} ${minutes} min ago`
+          : `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+      }
+      if (minutes > 0) {
+        return `${minutes} min ago`;
+      }
+      return 'just now';
+    },
+
+    relativeTimeClass(ts) {
+      if (!ts) return '';
+      const diff = (Date.now() - new Date(ts).getTime()) / 1000;
+      if (diff < 3600) return 'freshness-ok';
+      if (diff < 86400) return 'freshness-warn';
+      return 'freshness-stale';
+    },
+
+    freshnessNote(ts) {
+      if (!ts) return '';
+      const diff = (Date.now() - new Date(ts).getTime()) / 1000;
+      if (diff >= 86400) return '(monitoring may have stopped)';
+      if (diff >= 3600) return '(monitoring may not be running)';
+      return '';
+    },
   };
 }
 
