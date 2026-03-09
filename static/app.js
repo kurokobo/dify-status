@@ -59,6 +59,12 @@ function _getChartThemeColors() {
 
 function tooltipMixin() {
   return {
+    _now: Date.now(),
+
+    _startRelativeTimeUpdater() {
+      setInterval(() => { this._now = Date.now(); }, 60000);
+    },
+
     tooltip: {
       visible: false,
       x: 0,
@@ -143,7 +149,7 @@ function tooltipMixin() {
 
     formatRelativeTime(ts) {
       if (!ts) return '';
-      const now = Date.now();
+      const now = this._now;
       const then = new Date(ts).getTime();
       let diff = Math.floor((now - then) / 1000);
       if (diff < 0) diff = 0;
@@ -168,7 +174,7 @@ function tooltipMixin() {
 
     relativeTimeClass(ts) {
       if (!ts) return '';
-      const diff = (Date.now() - new Date(ts).getTime()) / 1000;
+      const diff = (this._now - new Date(ts).getTime()) / 1000;
       if (diff < 3600) return 'freshness-ok';
       if (diff < 86400) return 'freshness-warn';
       return 'freshness-stale';
@@ -176,7 +182,7 @@ function tooltipMixin() {
 
     freshnessNote(ts) {
       if (!ts) return '';
-      const diff = (Date.now() - new Date(ts).getTime()) / 1000;
+      const diff = (this._now - new Date(ts).getTime()) / 1000;
       if (diff >= 86400) return '(monitoring may have stopped)';
       if (diff >= 3600) return '(monitoring may not be running)';
       return '';
@@ -203,6 +209,7 @@ function statusApp() {
     ...tooltipMixin(),
 
     async init() {
+      this._startRelativeTimeUpdater();
       this.summary = await window._summaryPromise;
       this._loading = false;
       if (this.viewMode !== '90day') {
@@ -720,6 +727,7 @@ function detailApp() {
     },
 
     init() {
+      this._startRelativeTimeUpdater();
       const hash = window.location.hash.substring(1);
       const dates = this._availableDates();
       if (hash && dates.includes(hash)) {
