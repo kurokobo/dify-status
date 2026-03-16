@@ -503,3 +503,12 @@
 {"check_id": "webhook_free", "timestamp": "2026-03-16T09:31:03Z", "status": "down", "response_time_ms": 275, "message": "Webhook trigger failed: HTTP 503", "provisional": false}
 {"check_id": "webhook_pro", "timestamp": "2026-03-16T09:15:51Z", "status": "down", "response_time_ms": -1, "message": "Failed to fetch workflow logs: HTTP 503", "provisional": false}
 {"check_id": "webhook_pro", "timestamp": "2026-03-16T09:31:03Z", "status": "down", "response_time_ms": 171, "message": "Webhook trigger failed: HTTP 503", "provisional": false}
+{"check_id": "web_ui", "timestamp": "2026-03-16T09:45:20Z", "status": "up", "response_time_ms": 298, "message": "HTTP 200", "provisional": false}
+{"check_id": "api", "timestamp": "2026-03-16T09:45:21Z", "status": "up", "response_time_ms": 405, "message": "HTTP 200", "provisional": false}
+{"check_id": "sandbox", "timestamp": "2026-03-16T09:45:22Z", "status": "up", "response_time_ms": 729, "message": "HTTP 200", "provisional": false}
+{"check_id": "plugin", "timestamp": "2026-03-16T09:45:25Z", "status": "up", "response_time_ms": 3096, "message": "HTTP 200", "provisional": false}
+{"check_id": "retrieve", "timestamp": "2026-03-16T09:45:30Z", "status": "up", "response_time_ms": 5430, "message": "HTTP 200", "provisional": false}
+{"check_id": "indexing_free", "timestamp": "2026-03-16T09:45:30Z", "status": "up", "response_time_ms": -1, "message": "Uploaded, will check indexing status in the next cycle", "provisional": true}
+{"check_id": "indexing_pro", "timestamp": "2026-03-16T09:45:31Z", "status": "up", "response_time_ms": -1, "message": "Uploaded, will check indexing status in the next cycle", "provisional": true}
+{"check_id": "webhook_free", "timestamp": "2026-03-16T09:45:33Z", "status": "up", "response_time_ms": -1, "message": "Triggered, will check execution status in the next cycle", "provisional": true}
+{"check_id": "webhook_pro", "timestamp": "2026-03-16T09:45:34Z", "status": "up", "response_time_ms": -1, "message": "Triggered, will check execution status in the next cycle", "provisional": true}
