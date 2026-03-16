@@ -2,46 +2,46 @@
   "web_ui": {
     "consecutive_failures": 0,
     "incident_reported": false,
-    "last_timestamp": "2026-03-16T15:45:27Z"
+    "last_timestamp": "2026-03-16T16:00:42Z"
   },
   "api": {
-    "consecutive_failures": 1,
-    "incident_reported": false,
-    "last_timestamp": "2026-03-16T15:45:40Z"
-  },
-  "sandbox": {
-    "consecutive_failures": 1,
-    "incident_reported": false,
-    "last_timestamp": "2026-03-16T15:45:41Z"
-  },
-  "plugin": {
-    "consecutive_failures": 1,
-    "incident_reported": false,
-    "last_timestamp": "2026-03-16T15:45:41Z"
-  },
-  "retrieve": {
-    "consecutive_failures": 1,
-    "incident_reported": false,
-    "last_timestamp": "2026-03-16T15:45:41Z"
-  },
-  "indexing_free": {
-    "consecutive_failures": 1,
-    "incident_reported": false,
-    "last_timestamp": "2026-03-16T15:45:41Z"
-  },
-  "indexing_pro": {
-    "consecutive_failures": 1,
-    "incident_reported": false,
-    "last_timestamp": "2026-03-16T15:45:42Z"
-  },
-  "webhook_free": {
-    "consecutive_failures": 1,
-    "incident_reported": false,
-    "last_timestamp": "2026-03-16T15:45:42Z"
-  },
-  "webhook_pro": {
     "consecutive_failures": 0,
     "incident_reported": false,
-    "last_timestamp": "2026-03-16T15:30:54Z"
+    "last_timestamp": "2026-03-16T16:00:45Z"
+  },
+  "sandbox": {
+    "consecutive_failures": 0,
+    "incident_reported": false,
+    "last_timestamp": "2026-03-16T16:00:48Z"
+  },
+  "plugin": {
+    "consecutive_failures": 2,
+    "incident_reported": true,
+    "last_timestamp": "2026-03-16T16:01:48Z"
+  },
+  "retrieve": {
+    "consecutive_failures": 2,
+    "incident_reported": true,
+    "last_timestamp": "2026-03-16T16:02:18Z"
+  },
+  "indexing_free": {
+    "consecutive_failures": 2,
+    "incident_reported": true,
+    "last_timestamp": "2026-03-16T16:02:28Z"
+  },
+  "indexing_pro": {
+    "consecutive_failures": 2,
+    "incident_reported": true,
+    "last_timestamp": "2026-03-16T16:02:58Z"
+  },
+  "webhook_free": {
+    "consecutive_failures": 2,
+    "incident_reported": true,
+    "last_timestamp": "2026-03-16T16:03:29Z"
+  },
+  "webhook_pro": {
+    "consecutive_failures": 1,
+    "incident_reported": false,
+    "last_timestamp": "2026-03-16T16:03:49Z"
   }
 }
