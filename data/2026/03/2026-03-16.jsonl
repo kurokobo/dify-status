@@ -490,3 +490,16 @@
 {"check_id": "webhook_free", "timestamp": "2026-03-16T09:15:46Z", "status": "up", "response_time_ms": -1, "message": "Triggered, will check execution status in the next cycle", "provisional": true}
 {"check_id": "webhook_pro", "timestamp": "2026-03-16T09:01:07Z", "status": "up", "response_time_ms": 102, "message": "Processed", "provisional": false}
 {"check_id": "webhook_pro", "timestamp": "2026-03-16T09:15:51Z", "status": "up", "response_time_ms": -1, "message": "Triggered, will check execution status in the next cycle", "provisional": true}
+{"check_id": "web_ui", "timestamp": "2026-03-16T09:30:33Z", "status": "up", "response_time_ms": 610, "message": "HTTP 200", "provisional": false}
+{"check_id": "api", "timestamp": "2026-03-16T09:30:33Z", "status": "down", "response_time_ms": 357, "message": "HTTP 502 (expected 200)", "provisional": false}
+{"check_id": "sandbox", "timestamp": "2026-03-16T09:30:33Z", "status": "down", "response_time_ms": 179, "message": "HTTP 502 (expected 200)", "provisional": false}
+{"check_id": "plugin", "timestamp": "2026-03-16T09:30:33Z", "status": "down", "response_time_ms": 98, "message": "HTTP 502 (expected 200)", "provisional": false}
+{"check_id": "retrieve", "timestamp": "2026-03-16T09:30:33Z", "status": "down", "response_time_ms": 93, "message": "HTTP 502 (expected 200)", "provisional": false}
+{"check_id": "indexing_free", "timestamp": "2026-03-16T09:15:41Z", "status": "down", "response_time_ms": -1, "message": "Status check failed: HTTP 502", "provisional": false}
+{"check_id": "indexing_free", "timestamp": "2026-03-16T09:31:02Z", "status": "down", "response_time_ms": -1, "message": "Upload failed: HTTP 503", "provisional": false}
+{"check_id": "indexing_pro", "timestamp": "2026-03-16T09:15:42Z", "status": "down", "response_time_ms": -1, "message": "Status check failed: HTTP 503", "provisional": false}
+{"check_id": "indexing_pro", "timestamp": "2026-03-16T09:31:02Z", "status": "down", "response_time_ms": -1, "message": "Upload failed: HTTP 503", "provisional": false}
+{"check_id": "webhook_free", "timestamp": "2026-03-16T09:15:46Z", "status": "down", "response_time_ms": -1, "message": "Failed to fetch workflow logs: HTTP 503", "provisional": false}
+{"check_id": "webhook_free", "timestamp": "2026-03-16T09:31:03Z", "status": "down", "response_time_ms": 275, "message": "Webhook trigger failed: HTTP 503", "provisional": false}
+{"check_id": "webhook_pro", "timestamp": "2026-03-16T09:15:51Z", "status": "down", "response_time_ms": -1, "message": "Failed to fetch workflow logs: HTTP 503", "provisional": false}
+{"check_id": "webhook_pro", "timestamp": "2026-03-16T09:31:03Z", "status": "down", "response_time_ms": 171, "message": "Webhook trigger failed: HTTP 503", "provisional": false}
