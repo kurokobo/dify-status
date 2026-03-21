@@ -227,6 +227,7 @@ function statusApp() {
         case '3d': return 'Last 3 Days';
         case '7d': return 'Last 7 Days';
         case '14d': return 'Last 14 Days';
+        case '30d': return 'Last 30 Days';
         default: return '90-Day History';
       }
     },
@@ -236,8 +237,8 @@ function statusApp() {
       localStorage.setItem('viewMode', mode);
       if (mode === '24h' && !this._24hLoaded) {
         await this.load24hData();
-      } else if (mode === '3d' || mode === '7d' || mode === '14d') {
-        const numDays = { '3d': 3, '7d': 7, '14d': 14 }[mode];
+      } else if (mode === '3d' || mode === '7d' || mode === '14d' || mode === '30d') {
+        const numDays = { '3d': 3, '7d': 7, '14d': 14, '30d': 30 }[mode];
         if (this._multiDayLoaded < numDays) {
           await this.loadMultiDayData(numDays);
         }
@@ -499,12 +500,12 @@ function statusApp() {
     },
 
     multiDaySlice(arr) {
-      const n = { '3d': 3, '7d': 7, '14d': 14 }[this.viewMode] || 7;
+      const n = { '3d': 3, '7d': 7, '14d': 14, '30d': 30 }[this.viewMode] || 7;
       return arr.slice(-n);
     },
 
     _multiDayLastIdx() {
-      const n = { '3d': 3, '7d': 7, '14d': 14 }[this.viewMode] || 7;
+      const n = { '3d': 3, '7d': 7, '14d': 14, '30d': 30 }[this.viewMode] || 7;
       return Math.min(n, this.multiDayOverall.length) - 1;
     },
 

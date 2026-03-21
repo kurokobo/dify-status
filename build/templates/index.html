@@ -123,13 +123,14 @@
         <h2 class="section-heading" x-text="viewModeHeading()"></h2>
         <div class="tz-switcher">
           <button :class="{ 'tz-active': viewMode === '90day' }" @click="switchView('90day')">90D</button>
+          <button :class="{ 'tz-active': viewMode === '30d' }" @click="switchView('30d')">30D</button>
           <button :class="{ 'tz-active': viewMode === '14d' }" @click="switchView('14d')">14D</button>
           <button :class="{ 'tz-active': viewMode === '7d' }" @click="switchView('7d')">7D</button>
           <button :class="{ 'tz-active': viewMode === '3d' }" @click="switchView('3d')">3D</button>
           <button :class="{ 'tz-active': viewMode === '24h' }" @click="switchView('24h')">24H</button>
         </div>
       </div>
-      <div class="tz-switcher-row" x-show="(viewMode === '24h' && !loadingHourly && overallHourly.length > 0) || ((viewMode === '3d' || viewMode === '7d' || viewMode === '14d') && !loadingMultiDay && multiDayOverall.length > 0)">
+      <div class="tz-switcher-row" x-show="(viewMode === '24h' && !loadingHourly && overallHourly.length > 0) || ((viewMode === '3d' || viewMode === '7d' || viewMode === '14d' || viewMode === '30d') && !loadingMultiDay && multiDayOverall.length > 0)">
         <div class="tz-switcher">
           <button :class="{ 'tz-active': !show24hLocalTime }" @click="show24hLocalTime = false">UTC</button>
           <button :class="{ 'tz-active': show24hLocalTime }" @click="show24hLocalTime = true" x-text="tzLabel"></button>
@@ -199,8 +200,8 @@
         </div>
       </div>
 
-      <!-- Multi-day (3D/7D/14D) Overall -->
-      <div x-show="viewMode === '3d' || viewMode === '7d' || viewMode === '14d'">
+      <!-- Multi-day (3D/7D/14D/30D) Overall -->
+      <div x-show="viewMode === '3d' || viewMode === '7d' || viewMode === '14d' || viewMode === '30d'">
         <div x-show="loadingMultiDay" class="loading">Loading data...</div>
         <div x-show="!loadingMultiDay && multiDayOverall.length > 0">
           <div class="check-row">
@@ -359,8 +360,8 @@
         </template>
       </div>
 
-      <!-- Multi-day (3D/7D/14D) per-check rows -->
-      <div x-show="(viewMode === '3d' || viewMode === '7d' || viewMode === '14d') && !loadingMultiDay && multiDayChecks.length > 0">
+      <!-- Multi-day (3D/7D/14D/30D) per-check rows -->
+      <div x-show="(viewMode === '3d' || viewMode === '7d' || viewMode === '14d' || viewMode === '30d') && !loadingMultiDay && multiDayChecks.length > 0">
         <template x-for="mcheck in multiDayChecks" :key="mcheck.id">
           <a :href="'detail/' + mcheck.id + '.html'" class="check-row check-row-link">
             <div class="check-header">
