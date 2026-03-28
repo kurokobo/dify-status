@@ -10,4 +10,12 @@
       <div x-show="tooltip.avgResp >= 0" class="tooltip-detail">
         Avg response: <span x-text="tooltip.avgResp"></span> ms
       </div>
+      <div x-show="tooltip.checks && tooltip.checks.length > 0" class="tooltip-checks-list">
+        <template x-for="c in tooltip.checks" :key="c.name">
+          <div class="tooltip-check-row">
+            <span class="tooltip-check-name" x-text="c.name"></span>
+            <span class="tooltip-check-status" :class="'text-' + c.status" x-text="c.status"></span>
+          </div>
+        </template>
+      </div>
     </div>

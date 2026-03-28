@@ -74,6 +74,7 @@ function tooltipMixin() {
       status: '',
       uptime: null,
       avgResp: -1,
+      checks: [],
     },
 
     showTooltip(event, day) {
@@ -85,6 +86,10 @@ function tooltipMixin() {
       this.tooltip.status = day.status;
       this.tooltip.uptime = null;
       this.tooltip.avgResp = -1;
+      this.tooltip.checks = (this.summary.checks || []).map(c => {
+        const d = (c.days || []).find(d => d.date === day.date);
+        return { name: c.name, status: d ? d.status : 'nodata' };
+      });
     },
 
     showCheckTooltip(event, day, name) {
@@ -96,6 +101,7 @@ function tooltipMixin() {
       this.tooltip.status = day.status;
       this.tooltip.uptime = day.uptime_pct !== undefined ? day.uptime_pct : null;
       this.tooltip.avgResp = day.avg_response_ms !== undefined ? day.avg_response_ms : -1;
+      this.tooltip.checks = [];
     },
 
     hideTooltip() {
@@ -118,6 +124,7 @@ function tooltipMixin() {
       this.tooltip.status = status;
       this.tooltip.uptime = null;
       this.tooltip.avgResp = (responseMs !== undefined && responseMs >= 0) ? responseMs : -1;
+      this.tooltip.checks = (name === '') ? (this.summary.checks || []).map(c => ({ name: c.name, status: c.current_status })) : [];
     },
 
     formatTimestamp(ts) {
@@ -553,6 +560,10 @@ function statusApp() {
       this.tooltip.status = day.dayStatus;
       this.tooltip.uptime = null;
       this.tooltip.avgResp = -1;
+      this.tooltip.checks = (name === '') ? (this.multiDayChecks || []).map(c => {
+        const d = (c.days || []).find(d => d.date === day.date);
+        return { name: c.name, status: d ? d.dayStatus : 'nodata' };
+      }) : [];
     },
 
     showMultiDayTooltip(event, h, dateStr, name) {
@@ -572,6 +583,11 @@ function statusApp() {
       this.tooltip.status = h.status;
       this.tooltip.uptime = null;
       this.tooltip.avgResp = -1;
+      this.tooltip.checks = (name === '') ? (this.multiDayChecks || []).map(c => {
+        const dayObj = (c.days || []).find(d => d.date === dateStr);
+        const hourObj = dayObj ? (dayObj.hours || []).find(hh => hh.utcHour === utcH) : null;
+        return { name: c.name, status: hourObj ? hourObj.status : 'nodata' };
+      }) : [];
     },
 
     show24hLatestTooltip(event, status, name, timestamp, responseMs) {
@@ -594,6 +610,7 @@ function statusApp() {
       this.tooltip.status = status;
       this.tooltip.uptime = null;
       this.tooltip.avgResp = (responseMs !== undefined && responseMs >= 0) ? responseMs : -1;
+      this.tooltip.checks = (name === '') ? (this.hourlyChecks || []).map(c => ({ name: c.name, status: c.current_status })) : [];
     },
 
     show24hTooltip(event, h, name) {
@@ -608,6 +625,13 @@ function statusApp() {
       this.tooltip.status = h.status;
       this.tooltip.uptime = null;
       this.tooltip.avgResp = -1;
+      this.tooltip.checks = (name === '') ? (() => {
+        const bucketIdx = (this.overallHourly || []).indexOf(h);
+        return (this.hourlyChecks || []).map(c => {
+          const hourObj = bucketIdx >= 0 ? c.hours[bucketIdx] : null;
+          return { name: c.name, status: hourObj ? hourObj.status : 'nodata' };
+        });
+      })() : [];
     },
   };
 }

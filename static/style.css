@@ -349,6 +349,31 @@ h1 {
   color: var(--tooltip-secondary);
 }
 
+.tooltip-checks-list {
+  margin-top: 0.35rem;
+  padding-top: 0.3rem;
+  border-top: 1px solid color-mix(in srgb, var(--tooltip-secondary) 40%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  white-space: normal;
+}
+
+.tooltip-check-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.75rem;
+}
+
+.tooltip-check-name {
+  color: var(--tooltip-secondary);
+}
+
+.tooltip-check-status {
+  font-weight: 600;
+}
+
 .text-up { color: var(--tooltip-text-up); }
 .text-degraded { color: var(--tooltip-text-degraded); }
 .text-down { color: var(--tooltip-text-down); }
