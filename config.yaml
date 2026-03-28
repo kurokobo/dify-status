@@ -1,5 +1,6 @@
 settings:
   data_dir: data
+  archive_dir: data/archive
   retention_days: 90
   site_title: "Dify Cloud Status (Unofficial)"
   site_url: "https://kurokobo.github.io/dify-status/"
