@@ -797,3 +797,14 @@
 {"check_id": "indexing_pro", "timestamp": "2026-03-30T15:45:31Z", "status": "up", "response_time_ms": -1, "message": "Uploaded, will check indexing status in the next cycle", "provisional": true}
 {"check_id": "webhook_free", "timestamp": "2026-03-30T15:45:34Z", "status": "down", "response_time_ms": -1, "message": "Webhook trigger failed: [Errno -2] Name or service not known", "provisional": false}
 {"check_id": "webhook_pro", "timestamp": "2026-03-30T15:45:34Z", "status": "down", "response_time_ms": -1, "message": "Webhook trigger failed: [Errno -2] Name or service not known", "provisional": false}
+{"check_id": "web_ui", "timestamp": "2026-03-30T16:00:45Z", "status": "up", "response_time_ms": 503, "message": "HTTP 200", "provisional": false}
+{"check_id": "api", "timestamp": "2026-03-30T16:00:46Z", "status": "up", "response_time_ms": 573, "message": "HTTP 200", "provisional": false}
+{"check_id": "sandbox", "timestamp": "2026-03-30T16:00:49Z", "status": "up", "response_time_ms": 3161, "message": "HTTP 200", "provisional": false}
+{"check_id": "plugin", "timestamp": "2026-03-30T16:00:52Z", "status": "up", "response_time_ms": 3199, "message": "HTTP 200", "provisional": false}
+{"check_id": "retrieve", "timestamp": "2026-03-30T16:01:02Z", "status": "up", "response_time_ms": 9897, "message": "HTTP 200", "provisional": false}
+{"check_id": "indexing_free", "timestamp": "2026-03-30T15:45:30Z", "status": "up", "response_time_ms": 1000, "message": "Completed", "provisional": false}
+{"check_id": "indexing_free", "timestamp": "2026-03-30T16:01:02Z", "status": "up", "response_time_ms": -1, "message": "Uploaded, will check indexing status in the next cycle", "provisional": true}
+{"check_id": "indexing_pro", "timestamp": "2026-03-30T15:45:31Z", "status": "up", "response_time_ms": 0, "message": "Completed", "provisional": false}
+{"check_id": "indexing_pro", "timestamp": "2026-03-30T16:01:04Z", "status": "up", "response_time_ms": -1, "message": "Uploaded, will check indexing status in the next cycle", "provisional": true}
+{"check_id": "webhook_free", "timestamp": "2026-03-30T16:01:06Z", "status": "down", "response_time_ms": -1, "message": "Webhook trigger failed: [Errno -2] Name or service not known", "provisional": false}
+{"check_id": "webhook_pro", "timestamp": "2026-03-30T16:01:06Z", "status": "down", "response_time_ms": -1, "message": "Webhook trigger failed: [Errno -2] Name or service not known", "provisional": false}
