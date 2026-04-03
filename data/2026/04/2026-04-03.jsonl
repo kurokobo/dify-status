@@ -893,3 +893,15 @@
 {"check_id": "webhook_free", "timestamp": "2026-04-03T17:01:26Z", "status": "up", "response_time_ms": -1, "message": "Triggered, will check execution status in the next cycle", "provisional": true}
 {"check_id": "webhook_pro", "timestamp": "2026-04-03T16:45:31Z", "status": "up", "response_time_ms": 120, "message": "Processed", "provisional": false}
 {"check_id": "webhook_pro", "timestamp": "2026-04-03T17:01:27Z", "status": "up", "response_time_ms": -1, "message": "Triggered, will check execution status in the next cycle", "provisional": true}
+{"check_id": "web_ui", "timestamp": "2026-04-03T17:15:21Z", "status": "up", "response_time_ms": 154, "message": "HTTP 200", "provisional": false}
+{"check_id": "api", "timestamp": "2026-04-03T17:15:21Z", "status": "up", "response_time_ms": 367, "message": "HTTP 200", "provisional": false}
+{"check_id": "sandbox", "timestamp": "2026-04-03T17:15:22Z", "status": "up", "response_time_ms": 438, "message": "HTTP 200", "provisional": false}
+{"check_id": "plugin", "timestamp": "2026-04-03T17:15:25Z", "status": "up", "response_time_ms": 3142, "message": "HTTP 200", "provisional": false}
+{"check_id": "retrieve", "timestamp": "2026-04-03T17:15:28Z", "status": "up", "response_time_ms": 2654, "message": "HTTP 200", "provisional": false}
+{"check_id": "indexing_free", "timestamp": "2026-04-03T17:00:51Z", "status": "up", "response_time_ms": 2000, "message": "Completed", "provisional": false}
+{"check_id": "indexing_free", "timestamp": "2026-04-03T17:15:28Z", "status": "up", "response_time_ms": -1, "message": "Uploaded, will check indexing status in the next cycle", "provisional": true}
+{"check_id": "indexing_pro", "timestamp": "2026-04-03T17:15:29Z", "status": "up", "response_time_ms": -1, "message": "Uploaded, will check indexing status in the next cycle", "provisional": true}
+{"check_id": "webhook_free", "timestamp": "2026-04-03T17:01:26Z", "status": "up", "response_time_ms": 88, "message": "Processed", "provisional": false}
+{"check_id": "webhook_free", "timestamp": "2026-04-03T17:15:34Z", "status": "up", "response_time_ms": -1, "message": "Triggered, will check execution status in the next cycle", "provisional": true}
+{"check_id": "webhook_pro", "timestamp": "2026-04-03T17:01:27Z", "status": "up", "response_time_ms": 87, "message": "Processed", "provisional": false}
+{"check_id": "webhook_pro", "timestamp": "2026-04-03T17:15:35Z", "status": "up", "response_time_ms": -1, "message": "Triggered, will check execution status in the next cycle", "provisional": true}
