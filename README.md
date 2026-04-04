@@ -2,14 +2,14 @@
 
 An unofficial, independently operated status page for [Dify Cloud](https://cloud.dify.ai). Monitors service health via periodic checks, stores results as JSONL, builds a static site with a 90-day status grid, and deploys to GitHub Pages.
 
-**Live site:** https://kurokobo.github.io/dify-status/
+**Live site:** <https://kurokobo.github.io/dify-status/>
 
 > **Disclaimer:** This project is not affiliated with, endorsed by, or supported by Dify or LangGenius in any way. This is a personal project in an early/alpha stage. Behavior, check configurations, and results may change at any time without prior notice. No guarantees are made regarding the accuracy or reliability of results. The project may be discontinued at any time.
 
 ## Monitored Checks
 
 | ID | Name | What it does |
-|---|---|---|
+| --- | --- | --- |
 | `web_ui` | Web UI | GET `cloud.dify.ai`, expect HTTP 200 |
 | `api` | API | POST chat-messages (Start + Answer flow), expect body contains `pong` |
 | `sandbox` | Sandbox | POST chat-messages (Start + Template + Answer flow), expect body contains `pong from sandbox`. Depends on API. |
@@ -35,20 +35,23 @@ This project uses [uv](https://docs.astral.sh/uv/) for Python dependency managem
 
 ```bash
 # Run all checks and append results to data/
-uv run python -m checks.runner
+uv run --frozen python -m checks.runner
 
 # Post GitHub Issue comments on status transitions (requires GH_TOKEN)
-uv run python -m checks.notify
+uv run --frozen python -m checks.notify
 
 # Build the static site into site/
-uv run python -m build.build
+uv run --frozen python -m build.build
 
 # Remove data older than retention_days
-uv run python -m build.cleanup
+uv run --frozen python -m build.cleanup
 
 # Preview the built site locally
-uv run python -m http.server -d site 8000
+uv run --frozen python -m http.server -d site 8000
 ```
+
+Note: `uv.lock` is committed to the repository. CI always runs with `--frozen` to reproduce the exact locked versions.
+To update the lock file (e.g. to pick up newer package versions), run `uv lock` locally and commit the updated `uv.lock`.
 
 ## Architecture
 
@@ -61,7 +64,7 @@ uv run python -m http.server -d site 8000
 ### Check Types
 
 | Type | Description |
-|---|---|
+| --- | --- |
 | `http` | Single-cycle: sends an HTTP request and checks status code and/or body |
 | `knowledge` | Two-cycle: uploads a document in cycle N, checks indexing status in cycle N+1 |
 | `retrieve` | Single-cycle: POSTs a semantic search query and verifies the response |
