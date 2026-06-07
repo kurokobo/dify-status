@@ -14,6 +14,9 @@ from checks.base import BaseCheck, CheckResult, Status, body_snippet, logger
 
 STATE_DIR = Path(__file__).resolve().parent.parent / "data" / ".webhook_state"
 
+# HTTP status codes that indicate a timeout / gateway timeout (server may have accepted the request)
+TIMEOUT_STATUS_CODES = frozenset({408, 504, 524})
+
 
 class WebhookCheck(BaseCheck):
     def __init__(self, config: dict[str, Any]) -> None:
@@ -78,6 +81,10 @@ class WebhookCheck(BaseCheck):
     ) -> CheckResult:
         trigger_id = state["trigger_id"]
         triggered_at = state["triggered_at"]
+        timed_out = state.get("trigger_timed_out", False)
+        timeout_elapsed_ms = state.get("trigger_elapsed_ms", -1)
+        timeout_error = state.get("trigger_error", "")
+        timeout_note = f" (trigger had timed out: {timeout_elapsed_ms}ms - {timeout_error})" if timed_out else ""
 
         try:
             async with httpx.AsyncClient(
@@ -99,9 +106,13 @@ class WebhookCheck(BaseCheck):
 
                 logs = resp.json().get("data", [])
                 if not logs:
+                    if timed_out:
+                        msg = f"Webhook trigger had timed out ({timeout_elapsed_ms}ms) and was not processed"
+                    else:
+                        msg = "Webhook trigger not processed within check interval"
                     return self._result(
                         Status.DOWN, -1,
-                        "Webhook trigger not processed within check interval",
+                        msg,
                         timestamp=triggered_at,
                     )
 
@@ -114,20 +125,20 @@ class WebhookCheck(BaseCheck):
                     elapsed_ms = int(elapsed * 1000)
                     return self._result(
                         Status.UP, elapsed_ms,
-                        "Processed",
+                        f"Processed{timeout_note}",
                         timestamp=triggered_at,
                     )
                 elif status == "failed":
                     error = workflow_run.get("error", "unknown error")
                     return self._result(
                         Status.DOWN, -1,
-                        f"Webhook processing failed: {error}",
+                        f"Webhook processing failed: {error}{timeout_note}",
                         timestamp=triggered_at,
                     )
                 else:
                     return self._result(
                         Status.DOWN, -1,
-                        f"Webhook not completed (status: {status})",
+                        f"Webhook not completed (status: {status}){timeout_note}",
                         timestamp=triggered_at,
                     )
 
@@ -155,10 +166,10 @@ class WebhookCheck(BaseCheck):
         try:
             trigger_url = self._trigger_full_url(account)
             logger.info("[%s] POST %s (account_index=%d, trigger_id=%s)", self.check_id, trigger_url, account_index, trigger_id)
+            start = time.monotonic()
             async with httpx.AsyncClient(
                 timeout=self.timeout, follow_redirects=True
             ) as client:
-                start = time.monotonic()
                 resp = await client.post(
                     trigger_url,
                     json=body,
@@ -168,6 +179,25 @@ class WebhookCheck(BaseCheck):
 
                 content_type = resp.headers.get("content-type", "")
                 logger.info("[%s] Response: HTTP %d (%dms), body: %s", self.check_id, resp.status_code, elapsed_ms, body_snippet(resp.text, content_type))
+
+                if resp.status_code in TIMEOUT_STATUS_CODES:
+                    error_msg = f"HTTP {resp.status_code}"
+                    logger.warning("[%s] Webhook trigger returned timeout status %d (%dms), saving state for next cycle", self.check_id, resp.status_code, elapsed_ms)
+                    self._save_state({
+                        "trigger_id": trigger_id,
+                        "triggered_at": triggered_at,
+                        "account_index": account_index,
+                        "trigger_timed_out": True,
+                        "trigger_elapsed_ms": elapsed_ms,
+                        "trigger_error": error_msg,
+                    })
+                    result = self._result(
+                        Status.DEGRADED, elapsed_ms,
+                        f"Webhook trigger timed out ({elapsed_ms}ms, {error_msg}), may have been received. Will verify in the next cycle",
+                        timestamp=triggered_at,
+                    )
+                    result.provisional = True
+                    return result
 
                 if resp.status_code != 200:
                     return self._result(
@@ -188,9 +218,25 @@ class WebhookCheck(BaseCheck):
                 result.provisional = True
                 return result
 
-        except httpx.TimeoutException:
-            logger.warning("[%s] Webhook trigger timeout", self.check_id)
-            return self._result(Status.DOWN, -1, "Webhook trigger timeout")
+        except httpx.TimeoutException as exc:
+            elapsed_ms = int((time.monotonic() - start) * 1000)
+            error_msg = str(exc)
+            logger.warning("[%s] Webhook trigger timed out (%dms): %s. Saving state for next cycle", self.check_id, elapsed_ms, error_msg)
+            self._save_state({
+                "trigger_id": trigger_id,
+                "triggered_at": triggered_at,
+                "account_index": account_index,
+                "trigger_timed_out": True,
+                "trigger_elapsed_ms": elapsed_ms,
+                "trigger_error": error_msg,
+            })
+            result = self._result(
+                Status.DEGRADED, elapsed_ms,
+                f"Webhook trigger timed out ({elapsed_ms}ms), may have been received. Will verify in the next cycle",
+                timestamp=triggered_at,
+            )
+            result.provisional = True
+            return result
         except Exception as exc:
             logger.error("[%s] Webhook trigger failed: %s", self.check_id, exc)
             return self._result(Status.DOWN, -1, f"Webhook trigger failed: {exc}")
