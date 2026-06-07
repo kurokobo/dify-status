@@ -111,7 +111,7 @@ checks:
     params:
       trigger_url: "https://trigger.ai-plugin.io/triggers/webhook"
       base_url: "https://api.dify.ai/v1"
-      timeout: 60
+      timeout: 120
       accounts:
         - trigger_token_env: "DIFY_WEBHOOK_FREE_TRIGGER_TOKEN_1"
           api_key_env: "DIFY_WEBHOOK_FREE_API_KEY_1"
@@ -126,7 +126,7 @@ checks:
     params:
       trigger_url: "https://trigger.ai-plugin.io/triggers/webhook"
       base_url: "https://api.dify.ai/v1"
-      timeout: 60
+      timeout: 120
       accounts:
         - trigger_token_env: "DIFY_WEBHOOK_PRO_TRIGGER_TOKEN"
           api_key_env: "DIFY_WEBHOOK_PRO_API_KEY"
