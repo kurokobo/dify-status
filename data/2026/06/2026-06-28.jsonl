@@ -1,0 +1,13 @@
+{"check_id": "web_ui", "timestamp": "2026-06-28T00:00:53Z", "status": "up", "response_time_ms": 402, "message": "HTTP 200", "provisional": false}
+{"check_id": "api", "timestamp": "2026-06-28T00:00:53Z", "status": "up", "response_time_ms": 490, "message": "HTTP 200", "provisional": false}
+{"check_id": "sandbox", "timestamp": "2026-06-28T00:00:54Z", "status": "up", "response_time_ms": 1137, "message": "HTTP 200", "provisional": false}
+{"check_id": "plugin", "timestamp": "2026-06-28T00:00:58Z", "status": "up", "response_time_ms": 3393, "message": "HTTP 200", "provisional": false}
+{"check_id": "retrieve", "timestamp": "2026-06-28T00:00:59Z", "status": "up", "response_time_ms": 1498, "message": "HTTP 200", "provisional": false}
+{"check_id": "indexing_free", "timestamp": "2026-06-27T23:45:35Z", "status": "up", "response_time_ms": 2000, "message": "Completed", "provisional": false}
+{"check_id": "indexing_free", "timestamp": "2026-06-28T00:01:00Z", "status": "up", "response_time_ms": -1, "message": "Uploaded, will check indexing status in the next cycle", "provisional": true}
+{"check_id": "indexing_pro", "timestamp": "2026-06-27T23:45:35Z", "status": "up", "response_time_ms": 0, "message": "Completed", "provisional": false}
+{"check_id": "indexing_pro", "timestamp": "2026-06-28T00:01:01Z", "status": "up", "response_time_ms": -1, "message": "Uploaded, will check indexing status in the next cycle", "provisional": true}
+{"check_id": "webhook_free", "timestamp": "2026-06-27T23:45:38Z", "status": "up", "response_time_ms": 120, "message": "Processed", "provisional": false}
+{"check_id": "webhook_free", "timestamp": "2026-06-28T00:01:03Z", "status": "up", "response_time_ms": -1, "message": "Triggered, will check execution status in the next cycle", "provisional": true}
+{"check_id": "webhook_pro", "timestamp": "2026-06-27T23:45:39Z", "status": "up", "response_time_ms": 84, "message": "Processed", "provisional": false}
+{"check_id": "webhook_pro", "timestamp": "2026-06-28T00:01:48Z", "status": "up", "response_time_ms": -1, "message": "Triggered, will check execution status in the next cycle", "provisional": true}
