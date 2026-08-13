@@ -1,11 +1,11 @@
 <#
 .SYNOPSIS
-    Automates Webhook app rotation using PSDify.
+    Automates Webhook app rotation using PSDify with manual access-token login.
 
 .DESCRIPTION
     For each of Webhook Pro, Free 1, and Free 2:
-      1. Prompts for an email address (Enter to skip).
-      2. Connects to Dify Cloud via email code authentication.
+      1. Prompts you to log in to Dify Cloud and paste the access token and CSRF token.
+      2. Connects to Dify Cloud via PSDify access-token authentication.
       3. Imports dsls/webhook.yml as a new app.
       4. Issues a new API key.
       5. Retrieves the webhook trigger token automatically via the console API.
@@ -20,27 +20,15 @@
 
     Usage:
       cd <repo-root>
-      .\helper\webhook-apps-step1-create.ps1                                          # interactive
-      .\helper\webhook-apps-step1-create.ps1 -ProEmail you@example.com                # Pro only
-      .\helper\webhook-apps-step1-create.ps1 -Free1Email a@x.com -Free2Email b@x.com  # Free only
+      .\helper\webhook-apps-step1-create.ps1  # interactive, prompts per account
 #>
-param(
-    [string]$ProEmail   = $null,
-    [string]$Free1Email = $null,
-    [string]$Free2Email = $null
-)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$DSL_PATH     = Join-Path $PSScriptRoot "..\dsls\webhook.yml"
-$TRIGGER_BASE = "https://trigger.ai-plugin.io/triggers/webhook"
+$DSL_PATH      = Join-Path $PSScriptRoot "..\dsls\webhook.yml"
+$TRIGGER_BASE  = "https://trigger.ai-plugin.io/triggers/webhook"
 $DIFY_API_BASE = "https://api.dify.ai/v1"
-
-# If any parameter was supplied, skip interactive prompts for unspecified accounts.
-$ParamMode = $PSBoundParameters.ContainsKey('ProEmail') -or
-             $PSBoundParameters.ContainsKey('Free1Email') -or
-             $PSBoundParameters.ContainsKey('Free2Email')
 
 # Collected results per account (Pro / Free1 / Free2)
 $Results = [ordered]@{
@@ -52,53 +40,130 @@ $Results = [ordered]@{
 # ─────────────────────────────────────────────────────────────
 # Import app, issue API key, retrieve trigger token, publish
 # ─────────────────────────────────────────────────────────────
+function Read-PSDifySecret {
+    param(
+        [string]$Prompt
+    )
+
+    $SecureValue = Read-Host $Prompt -AsSecureString
+    if ($SecureValue.Length -eq 0) {
+        return $null
+    }
+
+    return [System.Net.NetworkCredential]::new("", $SecureValue).Password
+}
+
+function Initialize-PSDifyAccessTokenSession {
+    param(
+        [string]$Label
+    )
+
+    Write-Host "[$Label] Open Dify Cloud in the browser and log in to this account." -ForegroundColor Yellow
+    Write-Host "[$Label] Paste the access token and CSRF token. Press Enter at the access-token prompt to skip this account." -ForegroundColor Yellow
+
+    $AccessToken = Read-PSDifySecret -Prompt "[$Label] Access token"
+    if (-not $AccessToken) {
+        return $null
+    }
+
+    $CsrfToken = Read-PSDifySecret -Prompt "[$Label] CSRF token"
+    if (-not $CsrfToken) {
+        throw "[$Label] CSRF token is required when access token is provided."
+    }
+
+    $PreviousEnv = @{
+        PSDIFY_URL          = $env:PSDIFY_URL
+        PSDIFY_AUTH_METHOD  = $env:PSDIFY_AUTH_METHOD
+        PSDIFY_ACCESS_TOKEN = $env:PSDIFY_ACCESS_TOKEN
+        PSDIFY_CSRF_TOKEN   = $env:PSDIFY_CSRF_TOKEN
+    }
+
+    $env:PSDIFY_URL = "https://cloud.dify.ai"
+    $env:PSDIFY_AUTH_METHOD = "AccessToken"
+    $env:PSDIFY_ACCESS_TOKEN = $AccessToken
+    $env:PSDIFY_CSRF_TOKEN = $CsrfToken
+
+    return $PreviousEnv
+}
+
+function Restore-PSDifyEnvironment {
+    param(
+        [hashtable]$PreviousEnv
+    )
+
+    foreach ($Key in @("PSDIFY_URL", "PSDIFY_AUTH_METHOD", "PSDIFY_ACCESS_TOKEN", "PSDIFY_CSRF_TOKEN")) {
+        if ($null -eq $PreviousEnv[$Key]) {
+            Remove-Item "Env:$Key" -ErrorAction SilentlyContinue
+        }
+        else {
+            Set-Item -Path "Env:$Key" -Value $PreviousEnv[$Key]
+        }
+    }
+}
+
 function Register-WebhookApp {
     param(
-        [string]$Label,
-        [string]$Email
+        [string]$Label
     )
 
     Write-Host ""
-    Write-Host "[$Label] Connecting to Dify Cloud..." -ForegroundColor Cyan
-    Connect-Dify -AuthMethod Code -Email $Email | Out-Null
+    $PreviousEnv = $null
+    $Connected = $false
 
-    Write-Host "[$Label] Importing DSL: $DSL_PATH" -ForegroundColor Cyan
-    $App = Import-DifyApp -Path $DSL_PATH
-    if ($App -is [array]) { $App = $App[0] }
-    Write-Host "[$Label] App imported: $($App.Name) (ID: $($App.Id))" -ForegroundColor Green
+    try {
+        $PreviousEnv = Initialize-PSDifyAccessTokenSession -Label $Label
+        if (-not $PreviousEnv) {
+            Write-Host "[$Label] Skipped." -ForegroundColor DarkGray
+            return $null
+        }
 
-    Write-Host "[$Label] Issuing API key..." -ForegroundColor Cyan
-    $ApiKeyObj = $App | New-DifyAppAPIKey
-    Write-Host "[$Label] API key: $($ApiKeyObj.Token)" -ForegroundColor Green
+        Write-Host "[$Label] Connecting to Dify Cloud..." -ForegroundColor Cyan
+        Connect-Dify | Out-Null
+        $Connected = $true
 
-    # Retrieve the webhook trigger token via the console API
-    Write-Host "[$Label] Retrieving webhook trigger token..." -ForegroundColor Cyan
-    $Auth        = Get-PSDifyConsoleAuth
-    $Draft       = Invoke-DifyRestMethod `
-        -Uri            "$env:PSDIFY_URL/console/api/apps/$($App.Id)/workflows/draft" `
-        -SessionOrToken $Auth
-    $NodeId      = ($Draft.graph.nodes | Where-Object { $_.data.type -eq "trigger-webhook" }).id
-    $Trigger     = Invoke-DifyRestMethod `
-        -Uri            "$env:PSDIFY_URL/console/api/apps/$($App.Id)/workflows/triggers/webhook?node_id=$NodeId" `
-        -SessionOrToken $Auth
-    $TriggerToken = $Trigger.webhook_url -replace ".*/", ""
-    Write-Host "[$Label] Trigger token: $TriggerToken" -ForegroundColor Green
+        Write-Host "[$Label] Importing DSL: $DSL_PATH" -ForegroundColor Cyan
+        $App = Import-DifyApp -Path $DSL_PATH
+        if ($App -is [array]) { $App = $App[0] }
+        Write-Host "[$Label] App imported: $($App.Name) (ID: $($App.Id))" -ForegroundColor Green
 
-    # Publish the app so the webhook is live
-    Write-Host "[$Label] Publishing app..." -ForegroundColor Cyan
-    $null = Invoke-DifyRestMethod `
-        -Uri            "$env:PSDIFY_URL/console/api/apps/$($App.Id)/workflows/publish" `
-        -Method         POST `
-        -Body           "{}" `
-        -SessionOrToken $Auth
-    Write-Host "[$Label] App published." -ForegroundColor Green
+        Write-Host "[$Label] Issuing API key..." -ForegroundColor Cyan
+        $ApiKeyObj = $App | New-DifyAppAPIKey
+        Write-Host "[$Label] API key: $($ApiKeyObj.Token)" -ForegroundColor Green
 
-    Disconnect-Dify | Out-Null
+        Write-Host "[$Label] Retrieving webhook trigger token..." -ForegroundColor Cyan
+        $Auth = Get-PSDifyConsoleAuth
+        $Draft = Invoke-DifyRestMethod `
+            -Uri            "$env:PSDIFY_URL/console/api/apps/$($App.Id)/workflows/draft" `
+            -SessionOrToken $Auth
+        $NodeId = ($Draft.graph.nodes | Where-Object { $_.data.type -eq "trigger-webhook" }).id
+        $Trigger = Invoke-DifyRestMethod `
+            -Uri            "$env:PSDIFY_URL/console/api/apps/$($App.Id)/workflows/triggers/webhook?node_id=$NodeId" `
+            -SessionOrToken $Auth
+        $TriggerToken = $Trigger.webhook_url -replace ".*/", ""
+        Write-Host "[$Label] Trigger token: $TriggerToken" -ForegroundColor Green
 
-    return [PSCustomObject]@{
-        ApiKey       = $ApiKeyObj.Token
-        TriggerToken = $TriggerToken
-        AppName      = $App.Name
+        Write-Host "[$Label] Publishing app..." -ForegroundColor Cyan
+        $null = Invoke-DifyRestMethod `
+            -Uri            "$env:PSDIFY_URL/console/api/apps/$($App.Id)/workflows/publish" `
+            -Method         POST `
+            -Body           "{}" `
+            -SessionOrToken $Auth
+        Write-Host "[$Label] App published." -ForegroundColor Green
+
+        return [PSCustomObject]@{
+            ApiKey       = $ApiKeyObj.Token
+            TriggerToken = $TriggerToken
+            AppName      = $App.Name
+        }
+    }
+    finally {
+        if ($Connected) {
+            Disconnect-Dify | Out-Null
+        }
+
+        if ($PreviousEnv) {
+            Restore-PSDifyEnvironment -PreviousEnv $PreviousEnv
+        }
     }
 }
 
@@ -132,8 +197,8 @@ function Test-WebhookApp {
 
     Write-Host "[$Label] Trigger sent. Waiting for workflow to complete..." -ForegroundColor Cyan
 
-    $MaxRetry = 12      # up to 12 attempts
-    $Interval = 10      # 10-second interval => up to 2 minutes
+    $MaxRetry = 12
+    $Interval = 10
     $LogUri   = "$DIFY_API_BASE/workflows/logs?keyword=$TestId&limit=1"
     $Headers  = @{ Authorization = "Bearer $ApiKey" }
     $Status   = "timeout"
@@ -158,7 +223,7 @@ function Test-WebhookApp {
                 "succeeded" { "Green" }
                 "failed"    { "Red"   }
                 "stopped"   { "Red"   }
-                default     { "Yellow" }
+                default      { "Yellow" }
             }
             Write-Host "[$Label] Status: $Status ($($i + 1)/$MaxRetry)" -ForegroundColor $Color
 
@@ -181,18 +246,11 @@ Write-Host ""
 Write-Host "──────────────────────────────────────────────" -ForegroundColor DarkGray
 Write-Host " Webhook Pro" -ForegroundColor White
 Write-Host "──────────────────────────────────────────────" -ForegroundColor DarkGray
-if (-not $ParamMode) {
-    Write-Host "Enter email address to rotate, or press Enter to skip." -ForegroundColor Yellow
-    $ProEmail = Read-Host "Webhook Pro email"
-}
-
-if ($ProEmail) {
-    $r = Register-WebhookApp -Label "Webhook Pro" -Email $ProEmail
+$r = Register-WebhookApp -Label "Webhook Pro"
+if ($r) {
     $Results.Pro.ApiKey       = $r.ApiKey
     $Results.Pro.TriggerToken = $r.TriggerToken
     $Results.Pro.AppName      = $r.AppName
-} elseif ($ParamMode) {
-    Write-Host "[Webhook Pro] No email specified — skipped." -ForegroundColor DarkGray
 }
 
 # =====================================================
@@ -202,18 +260,11 @@ Write-Host ""
 Write-Host "──────────────────────────────────────────────" -ForegroundColor DarkGray
 Write-Host " Webhook Free 1" -ForegroundColor White
 Write-Host "──────────────────────────────────────────────" -ForegroundColor DarkGray
-if (-not $ParamMode) {
-    Write-Host "Enter email address to rotate, or press Enter to skip." -ForegroundColor Yellow
-    $Free1Email = Read-Host "Webhook Free 1 email"
-}
-
-if ($Free1Email) {
-    $r = Register-WebhookApp -Label "Webhook Free 1" -Email $Free1Email
+$r = Register-WebhookApp -Label "Webhook Free 1"
+if ($r) {
     $Results.Free1.ApiKey       = $r.ApiKey
     $Results.Free1.TriggerToken = $r.TriggerToken
     $Results.Free1.AppName      = $r.AppName
-} elseif ($ParamMode) {
-    Write-Host "[Webhook Free 1] No email specified — skipped." -ForegroundColor DarkGray
 }
 
 # =====================================================
@@ -223,18 +274,11 @@ Write-Host ""
 Write-Host "──────────────────────────────────────────────" -ForegroundColor DarkGray
 Write-Host " Webhook Free 2" -ForegroundColor White
 Write-Host "──────────────────────────────────────────────" -ForegroundColor DarkGray
-if (-not $ParamMode) {
-    Write-Host "Enter email address to rotate, or press Enter to skip." -ForegroundColor Yellow
-    $Free2Email = Read-Host "Webhook Free 2 email"
-}
-
-if ($Free2Email) {
-    $r = Register-WebhookApp -Label "Webhook Free 2" -Email $Free2Email
+$r = Register-WebhookApp -Label "Webhook Free 2"
+if ($r) {
     $Results.Free2.ApiKey       = $r.ApiKey
     $Results.Free2.TriggerToken = $r.TriggerToken
     $Results.Free2.AppName      = $r.AppName
-} elseif ($ParamMode) {
-    Write-Host "[Webhook Free 2] No email specified — skipped." -ForegroundColor DarkGray
 }
 
 # =====================================================

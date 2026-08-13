@@ -50,10 +50,10 @@ Follow the **Webhook Pro** section below.
 
 ### Webhook Pro
 
-**Step 1** — Create the new app. When it finishes, copy-paste the printed `$env:` lines into the session.
+**Step 1** — Create the new app. Log in manually when prompted, then paste the access token and CSRF token. When it finishes, copy-paste the printed `$env:` lines into the session.
 
 ```powershell
-.\helper\webhook-apps-step1-create.ps1 -ProEmail <email>
+.\helper\webhook-apps-step1-create.ps1
 ```
 
 **Step 2** — Wait for the current GHA cycle to complete ([Actions tab](../../actions)).
@@ -70,10 +70,10 @@ Run the printed `gh secret set` commands before the next GHA cycle (~15 min apar
 
 ### Webhook Free
 
-**Step 1** — Create new apps on both accounts. Copy-paste the printed `$env:` lines.
+**Step 1** — Create new apps on both accounts. Log in manually when prompted, then paste the access token and CSRF token for each account. Copy-paste the printed `$env:` lines.
 
 ```powershell
-.\helper\webhook-apps-step1-create.ps1 -Free1Email <email1> -Free2Email <email2>
+.\helper\webhook-apps-step1-create.ps1
 ```
 
 **Step 2** — Wait for the current GHA cycle to complete ([Actions tab](../../actions)).

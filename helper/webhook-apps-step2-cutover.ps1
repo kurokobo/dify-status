@@ -5,6 +5,7 @@
 .DESCRIPTION
     This is step 2 of the webhook app rotation process. Run webhook-apps-step1-create.ps1 first,
     then copy-paste the $env: commands it outputs into this session before running this script.
+    This script does not call Connect-Dify; it only replays webhook triggers with the exported tokens.
 
     The script will:
       1. Pull the latest state from origin/main.
