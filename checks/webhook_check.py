@@ -4,7 +4,7 @@ import json
 import os
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -16,6 +16,19 @@ STATE_DIR = Path(__file__).resolve().parent.parent / "data" / ".webhook_state"
 
 # HTTP status codes that indicate a timeout / gateway timeout (server may have accepted the request)
 TIMEOUT_STATUS_CODES = frozenset({408, 504, 524})
+
+# Margin subtracted from triggered_at for the created_at__after log filter
+SEARCH_MARGIN = timedelta(hours=1)
+
+
+def _search_after(triggered_at: str) -> str:
+    """Return the created_at__after value for the log search.
+
+    Dify stores created_at as naive UTC, so a naive UTC timestamp (no "Z") is sent
+    to avoid depending on the DB session time zone.
+    """
+    dt = datetime.strptime(triggered_at, "%Y-%m-%dT%H:%M:%SZ") - SEARCH_MARGIN
+    return dt.strftime("%Y-%m-%dT%H:%M:%S")
 
 
 class WebhookCheck(BaseCheck):
@@ -90,10 +103,17 @@ class WebhookCheck(BaseCheck):
             async with httpx.AsyncClient(
                 timeout=self.timeout, follow_redirects=True
             ) as client:
-                # Search logs by trigger_id using keyword parameter (1 API call)
-                url = f"{self.base_url}/workflows/logs?keyword={trigger_id}&limit=1"
-                logger.info("[%s] GET %s (account_index=%d)", self.check_id, url, state.get("account_index", 0))
-                resp = await client.get(url, headers=self._api_headers(account))
+                # Search logs by trigger_id using keyword parameter (1 API call).
+                # created_at__after narrows the expensive keyword match (ILIKE on run
+                # inputs/outputs) to recent logs so the cost does not grow with app history.
+                url = f"{self.base_url}/workflows/logs"
+                params = {
+                    "keyword": trigger_id,
+                    "created_at__after": _search_after(triggered_at),
+                    "limit": 1,
+                }
+                logger.info("[%s] GET %s %s (account_index=%d)", self.check_id, url, params, state.get("account_index", 0))
+                resp = await client.get(url, params=params, headers=self._api_headers(account))
                 content_type = resp.headers.get("content-type", "")
                 logger.info("[%s] Response: HTTP %d, body: %s", self.check_id, resp.status_code, body_snippet(resp.text, content_type))
 
