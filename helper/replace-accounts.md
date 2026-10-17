@@ -42,27 +42,23 @@ gh secret set DIFY_INDEXING_PRO_API_KEY    --body "<api key>"
 
 ### Step 4 — Replace the Webhook app
 
-Follow the **Replacing the Webhook App** section below.
+These steps can also be run on their own (without replacing the account), e.g. about once a year, to recreate the Webhook app and reset its accumulated run history.
 
----
+1. Create the new app. Log in manually when prompted, then paste the access token and CSRF token. When it finishes, copy-paste the printed `$env:` lines into the session.
 
-## Replacing the Webhook App
+   ```powershell
+   .\helper\webhook-apps-step1-create.ps1
+   ```
 
-**Step 1** — Create the new app. Log in manually when prompted, then paste the access token and CSRF token. When it finishes, copy-paste the printed `$env:` lines into the session.
+2. Wait for the current GHA cycle to complete ([Actions tab](../../actions)).
 
-```powershell
-.\helper\webhook-apps-step1-create.ps1
-```
+3. Replay the pending trigger and get the new secrets.
 
-**Step 2** — Wait for the current GHA cycle to complete ([Actions tab](../../actions)).
+   ```powershell
+   .\helper\webhook-apps-step2-cutover.ps1
+   ```
 
-**Step 3** — Replay the pending trigger and get the new secrets.
-
-```powershell
-.\helper\webhook-apps-step2-cutover.ps1
-```
-
-Run the printed `gh secret set` commands before the next GHA cycle (~15 min apart).
+4. Run the printed `gh secret set` commands before the next GHA cycle (~15 min apart).
 
 ---
 
