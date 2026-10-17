@@ -1,4 +1,4 @@
-# Replacing Accounts and Webhook Apps
+# Replacing Accounts and the Webhook App
 
 Run all scripts from the **repository root** in the same terminal session.
 
@@ -24,7 +24,7 @@ For each check below, create a new app on the new Pro account by importing the D
 Create a Knowledge base named **`status: retrieve`** and upload `hello_world.txt` with **High-Quality** indexing.  
 Note the Dataset ID and a Knowledge API key.
 
-**Knowledge Indexing (Pro Plan)** (`DIFY_INDEXING_PRO_DATASET_ID` / `DIFY_INDEXING_PRO_API_KEY`)  
+**Knowledge Indexing** (`DIFY_INDEXING_PRO_DATASET_ID` / `DIFY_INDEXING_PRO_API_KEY`)  
 Create a Knowledge base named **`status: indexing`** and upload `hello_world.txt`  with Economy indexing.  
 Note the Dataset ID and a Knowledge API key.
 
@@ -40,15 +40,13 @@ gh secret set DIFY_INDEXING_PRO_DATASET_ID --body "<dataset id>"
 gh secret set DIFY_INDEXING_PRO_API_KEY    --body "<api key>"
 ```
 
-### Step 4 — Replace the Webhook Pro app
+### Step 4 — Replace the Webhook app
 
-Follow the **Webhook Pro** section below.
+Follow the **Replacing the Webhook App** section below.
 
 ---
 
-## Replacing Webhook Apps
-
-### Webhook Pro
+## Replacing the Webhook App
 
 **Step 1** — Create the new app. Log in manually when prompted, then paste the access token and CSRF token. When it finishes, copy-paste the printed `$env:` lines into the session.
 
@@ -61,27 +59,7 @@ Follow the **Webhook Pro** section below.
 **Step 3** — Replay the pending trigger and get the new secrets.
 
 ```powershell
-.\helper\webhook-apps-step2-cutover.ps1 -Pro
-```
-
-Run the printed `gh secret set` commands before the next GHA cycle (~15 min apart).
-
----
-
-### Webhook Free
-
-**Step 1** — Create new apps on both accounts. Log in manually when prompted, then paste the access token and CSRF token for each account. Copy-paste the printed `$env:` lines.
-
-```powershell
-.\helper\webhook-apps-step1-create.ps1
-```
-
-**Step 2** — Wait for the current GHA cycle to complete ([Actions tab](../../actions)).
-
-**Step 3** — Replay the pending trigger for the correct account and get the new secrets.
-
-```powershell
-.\helper\webhook-apps-step2-cutover.ps1 -Free
+.\helper\webhook-apps-step2-cutover.ps1
 ```
 
 Run the printed `gh secret set` commands before the next GHA cycle (~15 min apart).

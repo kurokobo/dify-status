@@ -138,6 +138,9 @@ def run_notify() -> None:
 
     new_state: dict[str, dict] = {}
     for cid, record in latest.items():
+        # Ignore checks that have been removed from config.yaml
+        if cid not in check_names:
+            continue
         current_status = record["status"]
         current_ts = record["timestamp"]
         prev = prev_state.get(cid, {"consecutive_failures": 0, "incident_reported": False, "last_timestamp": ""})
@@ -174,9 +177,9 @@ def run_notify() -> None:
             "last_timestamp": current_ts,
         }
 
-    # Preserve state for checks not present in latest results
+    # Preserve state for configured checks not present in latest results
     for cid, val in prev_state.items():
-        if cid not in new_state:
+        if cid not in new_state and cid in check_names:
             new_state[cid] = val
 
     save_state(new_state)

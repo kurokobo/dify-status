@@ -3,7 +3,7 @@
     Automates Webhook app rotation using PSDify with manual access-token login.
 
 .DESCRIPTION
-    For each of Webhook Pro, Free 1, and Free 2:
+    For the Webhook Pro account:
       1. Prompts you to log in to Dify Cloud and paste the access token and CSRF token.
       2. Connects to Dify Cloud via PSDify access-token authentication.
       3. Imports dsls/webhook.yml as a new app.
@@ -20,7 +20,7 @@
 
     Usage:
       cd <repo-root>
-      .\helper\webhook-apps-step1-create.ps1  # interactive, prompts per account
+      .\helper\webhook-apps-step1-create.ps1  # interactive
 #>
 
 Set-StrictMode -Version Latest
@@ -30,11 +30,9 @@ $DSL_PATH      = Join-Path $PSScriptRoot "..\dsls\webhook.yml"
 $TRIGGER_BASE  = "https://trigger.ai-plugin.io/triggers/webhook"
 $DIFY_API_BASE = "https://api.dify.ai/v1"
 
-# Collected results per account (Pro / Free1 / Free2)
+# Collected results per account
 $Results = [ordered]@{
-    Pro   = @{ ApiKey = $null; TriggerToken = $null; AppName = $null }
-    Free1 = @{ ApiKey = $null; TriggerToken = $null; AppName = $null }
-    Free2 = @{ ApiKey = $null; TriggerToken = $null; AppName = $null }
+    Pro = @{ ApiKey = $null; TriggerToken = $null; AppName = $null }
 }
 
 # ─────────────────────────────────────────────────────────────
@@ -254,45 +252,17 @@ if ($r) {
 }
 
 # =====================================================
-# Webhook Free 1
-# =====================================================
-Write-Host ""
-Write-Host "──────────────────────────────────────────────" -ForegroundColor DarkGray
-Write-Host " Webhook Free 1" -ForegroundColor White
-Write-Host "──────────────────────────────────────────────" -ForegroundColor DarkGray
-$r = Register-WebhookApp -Label "Webhook Free 1"
-if ($r) {
-    $Results.Free1.ApiKey       = $r.ApiKey
-    $Results.Free1.TriggerToken = $r.TriggerToken
-    $Results.Free1.AppName      = $r.AppName
-}
-
-# =====================================================
-# Webhook Free 2
-# =====================================================
-Write-Host ""
-Write-Host "──────────────────────────────────────────────" -ForegroundColor DarkGray
-Write-Host " Webhook Free 2" -ForegroundColor White
-Write-Host "──────────────────────────────────────────────" -ForegroundColor DarkGray
-$r = Register-WebhookApp -Label "Webhook Free 2"
-if ($r) {
-    $Results.Free2.ApiKey       = $r.ApiKey
-    $Results.Free2.TriggerToken = $r.TriggerToken
-    $Results.Free2.AppName      = $r.AppName
-}
-
-# =====================================================
 # Test run (only for accounts with both keys present)
 # =====================================================
 $TestResults = @{}
-$LabelMap    = @{ Pro = "Webhook Pro"; Free1 = "Webhook Free 1"; Free2 = "Webhook Free 2" }
+$LabelMap    = @{ Pro = "Webhook Pro" }
 
 Write-Host ""
 Write-Host "──────────────────────────────────────────────" -ForegroundColor DarkGray
 Write-Host " Test run" -ForegroundColor White
 Write-Host "──────────────────────────────────────────────" -ForegroundColor DarkGray
 
-foreach ($Key in @("Pro", "Free1", "Free2")) {
+foreach ($Key in @("Pro")) {
     $R = $Results[$Key]
     if ($R.ApiKey -and $R.TriggerToken) {
         $TestResults[$Key] = Test-WebhookApp `
@@ -323,33 +293,11 @@ if ($Results.Pro.ApiKey) {
     Write-Host "DIFY_WEBHOOK_PRO_API_KEY=$($Results.Pro.ApiKey)"
 }
 
-if ($Results.Free1.ApiKey) {
-    $AnyResult  = $true
-    $TestBadge  = if ($TestResults.ContainsKey("Free1")) { "[test: $($TestResults['Free1'])]" } else { "[test: skipped]" }
-    $BadgeColor = if ($TestResults["Free1"] -eq "succeeded") { "Green" } else { "Yellow" }
-
-    Write-Host ""
-    Write-Host "# Webhook Free 1  $TestBadge" -ForegroundColor $BadgeColor
-    Write-Host "DIFY_WEBHOOK_FREE_TRIGGER_TOKEN_1=$($Results.Free1.TriggerToken)"
-    Write-Host "DIFY_WEBHOOK_FREE_API_KEY_1=$($Results.Free1.ApiKey)"
-}
-
-if ($Results.Free2.ApiKey) {
-    $AnyResult  = $true
-    $TestBadge  = if ($TestResults.ContainsKey("Free2")) { "[test: $($TestResults['Free2'])]" } else { "[test: skipped]" }
-    $BadgeColor = if ($TestResults["Free2"] -eq "succeeded") { "Green" } else { "Yellow" }
-
-    Write-Host ""
-    Write-Host "# Webhook Free 2  $TestBadge" -ForegroundColor $BadgeColor
-    Write-Host "DIFY_WEBHOOK_FREE_TRIGGER_TOKEN_2=$($Results.Free2.TriggerToken)"
-    Write-Host "DIFY_WEBHOOK_FREE_API_KEY_2=$($Results.Free2.ApiKey)"
-}
-
 Write-Host ""
 Write-Host "============================================" -ForegroundColor Green
 
 if (-not $AnyResult) {
-    Write-Host "(all accounts skipped)" -ForegroundColor DarkGray
+    Write-Host "(skipped)" -ForegroundColor DarkGray
 }
 
 $FailedTests = $TestResults.GetEnumerator() | Where-Object { $_.Value -ne "succeeded" }
@@ -373,15 +321,5 @@ if ($AnyResult) {
         Write-Host ""
         Write-Host "`$env:DIFY_WEBHOOK_PRO_TRIGGER_TOKEN = `"$($Results.Pro.TriggerToken)`""
         Write-Host "`$env:DIFY_WEBHOOK_PRO_API_KEY        = `"$($Results.Pro.ApiKey)`""
-    }
-    if ($Results.Free1.ApiKey) {
-        Write-Host ""
-        Write-Host "`$env:DIFY_WEBHOOK_FREE_TRIGGER_TOKEN_1 = `"$($Results.Free1.TriggerToken)`""
-        Write-Host "`$env:DIFY_WEBHOOK_FREE_API_KEY_1        = `"$($Results.Free1.ApiKey)`""
-    }
-    if ($Results.Free2.ApiKey) {
-        Write-Host ""
-        Write-Host "`$env:DIFY_WEBHOOK_FREE_TRIGGER_TOKEN_2 = `"$($Results.Free2.TriggerToken)`""
-        Write-Host "`$env:DIFY_WEBHOOK_FREE_API_KEY_2        = `"$($Results.Free2.ApiKey)`""
     }
 }

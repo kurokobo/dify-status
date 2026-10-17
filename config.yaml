@@ -12,7 +12,7 @@ settings:
     - "Periodically monitors the operational status of cloud.dify.ai by running pre-built apps and knowledge bases via the API, simulating real user operations."
     - "Runs every 15 minutes, triggered by cron-job.org via GitHub Actions workflow_dispatch. Data gaps may occur during outages on either side."
     - "All API-dependent checks share the same underlying API layer. An API outage will cause all such checks to fail simultaneously."
-    - "Pro plan checks may stop working due to the subscription period ending."
+    - "All checks run on a Pro plan account and may stop working due to the subscription period ending."
     - "Status change notifications (incidents and recoveries) are posted as comments to a GitHub Issue."
   site_disclaimer:
     - "This is an unofficial, independently operated status page. It is not affiliated with, endorsed by, or supported by Dify or LangGenius in any way."
@@ -77,25 +77,11 @@ checks:
       api_key_env: "DIFY_RETRIEVE_API_KEY"
       timeout: 30
 
-  - id: indexing_free
-    name: "Knowledge Indexing (Free Plan)"
-    type: knowledge
-    description: "Upload a small text document with Economy indexing on the Free (Sandbox) plan and verify the indexing queue processes it successfully"
-    note: "Depends on API; if the API is down, this check will also fail. Indexing time reflects the actual indexing duration, not the API call latency. If indexing is not completed within approximately 15 minutes, the check is considered failed"
-    params:
-      base_url: "https://api.dify.ai/v1"
-      timeout: 30
-      accounts:
-        - dataset_id_env: "DIFY_INDEXING_FREE_DATASET_ID_1"
-          api_key_env: "DIFY_INDEXING_FREE_API_KEY_1"
-        - dataset_id_env: "DIFY_INDEXING_FREE_DATASET_ID_2"
-          api_key_env: "DIFY_INDEXING_FREE_API_KEY_2"
-
   - id: indexing_pro
-    name: "Knowledge Indexing (Pro Plan)"
+    name: "Knowledge Indexing"
     type: knowledge
-    description: "Upload a small text document with Economy indexing on the Pro plan and verify the indexing queue processes it successfully"
-    note: "Depends on API; if the API is down, this check will also fail. Indexing time reflects the actual indexing duration, not the API call latency. If indexing is not completed within approximately 15 minutes, the check is considered failed. This check may stop working due to the Pro plan subscription period ending"
+    description: "Upload a small text document with Economy indexing and verify the indexing queue processes it successfully"
+    note: "Depends on API; if the API is down, this check will also fail. Indexing time reflects the actual indexing duration, not the API call latency. If indexing is not completed within approximately 15 minutes, the check is considered failed"
     params:
       base_url: "https://api.dify.ai/v1"
       timeout: 30
@@ -103,26 +89,11 @@ checks:
         - dataset_id_env: "DIFY_INDEXING_PRO_DATASET_ID"
           api_key_env: "DIFY_INDEXING_PRO_API_KEY"
 
-  - id: webhook_free
-    name: "Webhook Trigger (Free Plan)"
-    type: webhook
-    description: "Trigger a workflow via webhook on the Free (Sandbox) plan and verify it is processed successfully"
-    note: "Depends on API; if the API is down, this check will also fail. Processing time reflects the actual workflow execution duration, not the API call latency. If the webhook is not processed within approximately 15 minutes, the check is considered failed"
-    params:
-      trigger_url: "https://trigger.ai-plugin.io/triggers/webhook"
-      base_url: "https://api.dify.ai/v1"
-      timeout: 120
-      accounts:
-        - trigger_token_env: "DIFY_WEBHOOK_FREE_TRIGGER_TOKEN_1"
-          api_key_env: "DIFY_WEBHOOK_FREE_API_KEY_1"
-        - trigger_token_env: "DIFY_WEBHOOK_FREE_TRIGGER_TOKEN_2"
-          api_key_env: "DIFY_WEBHOOK_FREE_API_KEY_2"
-
   - id: webhook_pro
-    name: "Webhook Trigger (Pro Plan)"
+    name: "Webhook Trigger"
     type: webhook
-    description: "Trigger a workflow via webhook on the Pro plan and verify it is processed successfully"
-    note: "Depends on API; if the API is down, this check will also fail. Processing time reflects the actual workflow execution duration, not the API call latency. If the webhook is not processed within approximately 15 minutes, the check is considered failed. This check may stop working due to the Pro plan subscription period ending"
+    description: "Trigger a workflow via webhook and verify it is processed successfully"
+    note: "Depends on API; if the API is down, this check will also fail. Processing time reflects the actual workflow execution duration, not the API call latency. If the webhook is not processed within approximately 15 minutes, the check is considered failed"
     params:
       trigger_url: "https://trigger.ai-plugin.io/triggers/webhook"
       base_url: "https://api.dify.ai/v1"
