@@ -2,36 +2,36 @@
   "web_ui": {
     "consecutive_failures": 0,
     "incident_reported": false,
-    "last_timestamp": "2026-11-01T23:45:38Z"
+    "last_timestamp": "2026-11-02T00:01:11Z"
   },
   "api": {
     "consecutive_failures": 0,
     "incident_reported": false,
-    "last_timestamp": "2026-11-01T23:45:46Z"
+    "last_timestamp": "2026-11-02T00:01:21Z"
   },
   "sandbox": {
     "consecutive_failures": 0,
     "incident_reported": false,
-    "last_timestamp": "2026-11-01T23:45:54Z"
+    "last_timestamp": "2026-11-02T00:01:30Z"
   },
   "plugin": {
     "consecutive_failures": 0,
     "incident_reported": false,
-    "last_timestamp": "2026-11-01T23:46:04Z"
+    "last_timestamp": "2026-11-02T00:01:41Z"
   },
   "retrieve": {
-    "consecutive_failures": 0,
+    "consecutive_failures": 1,
     "incident_reported": false,
-    "last_timestamp": "2026-11-01T23:46:07Z"
+    "last_timestamp": "2026-11-02T00:02:02Z"
   },
   "indexing_pro": {
     "consecutive_failures": 0,
     "incident_reported": false,
-    "last_timestamp": "2026-11-01T23:31:18Z"
+    "last_timestamp": "2026-11-01T23:46:08Z"
   },
   "webhook_pro": {
     "consecutive_failures": 0,
     "incident_reported": false,
-    "last_timestamp": "2026-11-01T23:31:25Z"
+    "last_timestamp": "2026-11-01T23:46:14Z"
   }
 }
